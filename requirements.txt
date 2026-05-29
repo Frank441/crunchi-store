@@ -1,0 +1,3 @@
+# MongoDB
+pymongo
+python-dotenv
