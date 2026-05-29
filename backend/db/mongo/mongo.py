@@ -11,5 +11,3 @@ MONGO_DB  = os.getenv("MONGO_DB")
 client = MongoClient(MONGO_URI)
 
 db: Database = client[MONGO_DB]
-
-

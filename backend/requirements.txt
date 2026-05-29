@@ -1,3 +1,7 @@
 # MongoDB
 pymongo
 python-dotenv
+
+# API (FastAPI)
+fastapi
+uvicorn[standard]
