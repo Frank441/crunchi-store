@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+:root {
+  --background-primary: #000000;
+  --color-primary:#5B80DC;
+
+}
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-background: var(--background-primary);
+  --font-ubuntu: 'Ubuntu', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-helvetica: 'Helvetica', sans-serif
+}
+
+
+
