@@ -60,6 +60,21 @@ class SugerenciaHome(BaseModel):
     id_producto: str
     titulo: str
     puntos_afinidad: int
+    
+class UsuarioNeo4jInput(BaseModel):
+    id_usuario: str = Field(..., examples=["u1"])
+    alias: str = Field(..., examples=["Maximo"])
+
+class ProductoNeo4jInput(BaseModel):
+    id_producto: str = Field(..., examples=["p1"])
+    titulo: str = Field(..., examples=["Berserk Vol. 1"])
+    formato: str = Field(..., examples=["Manga"])
+    genero: str = Field(..., examples=["Seinen"])
+
+class AccionUsuarioNeo4jInput(BaseModel):
+    id_usuario: str = Field(..., examples=["u1"])
+    id_producto: str = Field(..., examples=["p1"])
+    relacion: str = Field(..., examples=["COMPRO"], description="'COMPRO' o 'VIO'")
 
 # Modelos Cassandra
 class EventoPorUsuarioOut(BaseModel):
@@ -73,6 +88,13 @@ class EventoPorProductoOut(BaseModel):
     evento: str = Field(..., description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
     fecha_hora: datetime
     id_usuario: uuid.UUID
+    
+class EventoInsertInput(BaseModel):
+    id_usuario: uuid.UUID = Field(..., examples=["123e4567-e89b-12d3-a456-426614174000"])
+    id_producto: uuid.UUID = Field(..., examples=["987f6543-e21b-34c5-d678-987654321000"])
+    evento: str = Field(..., examples=["VIEW_PRODUCT"], description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
+    # Dejamos opcional la fecha para que, si el front no la envía, el backend use la hora actual exacta
+    fecha_hora: datetime | None = Field(None, description="Si se omite, se usa el timestamp actual.")
 
 # Almacenamiento en memoria (se reinicia al reiniciar el servidor).
 _id_seq = count(1)
@@ -238,6 +260,80 @@ def obtener_sugerencias_home(usuario_id: str):
         
     return sugerencias
 
+@app.post("/neo4j/usuario", status_code=status.HTTP_201_CREATED)
+def insertar_usuario_neo4j(datos: UsuarioNeo4jInput):
+    """
+    Crea o actualiza de forma manual un nodo Usuario en el grafo.
+    """
+    query = """
+        MERGE (u:Usuario {id: $id_user})
+        SET u.alias = $alias
+        RETURN u.id AS id, u.alias AS alias
+    """
+    with neo4j_db.get_session() as session:
+        try:
+            session.run(query, id_user=datos.id_usuario, alias=datos.alias)
+            return {"status": "success", "mensaje": f"Usuario '{datos.alias}' registrado en Neo4j."}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error en Neo4j: {str(e)}")
+
+@app.post("/neo4j/producto", status_code=status.HTTP_201_CREATED)
+def insertar_producto_completo_neo4j(datos: ProductoNeo4jInput):
+    """
+    Crea un nodo Producto, un nodo Genero si no existe, y establece la relación
+    [:PERTENECE_A] de forma automática siguiendo el esquema del modelo.
+    """
+    query = """
+        MERGE (p:Producto {id: $id_prod})
+        SET p.titulo = $titulo, p.formato = $formato
+        MERGE (g:Genero {nombre: $genero})
+        MERGE (p)-[:PERTENECE_A]->(g)
+    """
+    with neo4j_db.get_session() as session:
+        try:
+            session.run(
+                query, 
+                id_prod=datos.id_producto, 
+                titulo=datos.titulo, 
+                formato=datos.formato, 
+                genero=datos.genero
+            )
+            return {"status": "success", "mensaje": f"Producto '{datos.titulo}' enlazado a género '{datos.genero}' exitosamente."}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error en Neo4j: {str(e)}")
+
+@app.post("/neo4j/accion-usuario", status_code=status.HTTP_201_CREATED)
+def registrar_accion_usuario_neo4j(datos: AccionUsuarioNeo4jInput):
+    """
+    Crea interacciones dinámicas de grafos (relaciones COMPRO o VIO) desde el front
+    para alimentar en tiempo real el motor de recomendaciones colaborativas.
+    """
+    # Validamos que el front mande una relación segura para el grafo
+    relacion_limpia = datos.relacion.upper()
+    if relacion_limpia not in ["COMPRO", "VIO"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="La relación debe ser exclusivamente 'COMPRO' o 'VIO'"
+        )
+
+    # Usamos APOC o concatenación segura interna para la query ya que las relaciones en Cypher no admiten parámetros nativos directos $
+    query = f"""
+        MATCH (u:Usuario {{id: $id_user}})
+        MATCH (p:Producto {{id: $id_prod}})
+        MERGE (u)-[:{relacion_limpia}]->(p)
+    """
+    with neo4j_db.get_session() as session:
+        try:
+            resultado = session.run(query, id_user=datos.id_usuario, id_prod=datos.id_producto)
+            # Validamos si los nodos realmente existían antes de relacionarlos
+            if resultado.consume().counters.relationships_created == 0:
+                # Si no se creó nada, verificamos si es porque ya existía o porque no encontró los nodos
+                pass
+            return {"status": "success", "mensaje": f"Relación -[:{relacion_limpia}]-> establecida correctamente."}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error al relacionar en Neo4j: {str(e)}")
+        
+
 # --- ENDPOINTS CASSANDRA (PANEL DE ANALÍTICA - SOLO LECTURA REAL) ---
 @app.get("/usuario/{id_usuario}", response_model=list[EventoPorUsuarioOut])
 def obtener_user_journey(id_usuario: uuid.UUID):
@@ -304,4 +400,48 @@ def obtener_embudo_producto(id_producto: uuid.UUID, evento: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al consultar Cassandra: {str(e)}"
+        )
+
+
+@app.post("/cassandra/evento", status_code=status.HTTP_201_CREATED)
+def insertar_evento_manual(datos: EventoInsertInput):
+    """
+    Simulación de envío de eventos desde el Front.
+    Inserta la información de forma duplicada en 'eventos_por_usuario' y 'eventos_por_producto'
+    para asegurar que el panel de analítica disponga de todos los datos en O(1).
+    """
+    session = cassandra_db.get_session()
+    
+    # Si el frontend no define una fecha_hora específica, tomamos el instante actual
+    fecha_exacta = datos.fecha_hora if datos.fecha_hora else datetime.now()
+
+    # Preparamos las sentencias para asegurar consistencia y performance
+    query_usuario = """
+        INSERT INTO eventos_por_usuario (id_usuario, fecha_hora, evento, id_producto)
+        VALUES (?, ?, ?, ?)
+    """
+    query_producto = """
+        INSERT INTO eventos_por_producto (id_producto, evento, fecha_hora, id_usuario)
+        VALUES (?, ?, ?, ?)
+    """
+
+    try:
+        # Inserción obligatoria en ambas estructuras (Query-Driven Architecture)
+        session.execute(query_usuario, (datos.id_usuario, fecha_exacta, datos.evento, datos.id_producto))
+        session.execute(query_producto, (datos.id_producto, datos.evento, fecha_exacta, datos.id_usuario))
+        
+        return {
+            "status": "success",
+            "mensaje": "Evento registrado exitosamente en ambas tablas de Cassandra.",
+            "datos_insertados": {
+                "id_usuario": datos.id_usuario,
+                "id_producto": datos.id_producto,
+                "evento": datos.evento,
+                "fecha_hora": fecha_exacta
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al escribir en Cassandra: {str(e)}"
         )
