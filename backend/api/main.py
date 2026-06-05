@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field
 import uuid
 from datetime import datetime
 
-from backend.db.neo4j import neo4j as neo4j_db
-from backend.db.cassandra import cassandra as cassandra_db
+from db.neo4j import neo4j as neo4j_db
+from db.cassandra import cassandra as cassandra_db
 
 app = FastAPI(
     title="Crunchi Store API",

@@ -12,3 +12,6 @@ neo4j
 
 # Cassandra
 cassandra-driver
+# asyncore fue eliminado en Python 3.12; este backport lo restaura
+# (lo necesita el reactor por defecto de cassandra-driver)
+pyasyncore
