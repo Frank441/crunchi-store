@@ -3,15 +3,17 @@
 :root {
   --background-primary: #000000;
   --color-primary:#5B80DC;
-
+  --color-primary-hovered: #99b6fe;
 }
 
 @theme {
   --color-primary: var(--color-primary);
   --color-background: var(--background-primary);
+  --color-primary-hovered: var(--color-primary-hovered);
   --font-ubuntu: 'Ubuntu', sans-serif;
   --font-inter: 'Inter', sans-serif;
-  --font-helvetica: 'Helvetica', sans-serif
+  --font-helvetica: 'Helvetica', sans-serif;
+
 }
 
 

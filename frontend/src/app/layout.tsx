@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Ubuntu, Inter } from "next/font/google";
 import { Header } from '@/components';
+import { ThemeRegistry } from '@/lib/mui';
 import "./globals.css";
 
 const ubuntu = Ubuntu({
@@ -39,8 +40,10 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
     >
       <body className={`${ubuntu.className} ${inter.className}`}>
-        <Header />
-        {children}
+        <ThemeRegistry>
+          <Header />
+          {children}
+        </ThemeRegistry>
       </body>
     </html>
   );
