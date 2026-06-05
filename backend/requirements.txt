@@ -5,3 +5,10 @@ python-dotenv
 # API (FastAPI)
 fastapi
 uvicorn[standard]
+
+
+# Neo4j
+neo4j
+
+# Cassandra
+cassandra-driver
