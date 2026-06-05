@@ -3,6 +3,8 @@ from itertools import count
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
+from backend.db.neo4j import neo4j as neo4j_db
+
 app = FastAPI(
     title="Crunchi Store API",
     description="API sencilla de demostración para el marketplace Crunchi Store.",
@@ -42,6 +44,18 @@ class ProductoUpdate(BaseModel):
 
 class Producto(ProductoBase):
     id: int
+    
+    
+class RecomendacionItem(BaseModel):
+    id_producto: str
+    titulo: str
+    relevancia: int
+
+
+class SugerenciaHome(BaseModel):
+    id_producto: str
+    titulo: str
+    puntos_afinidad: int
 
 
 # Almacenamiento en memoria (se reinicia al reiniciar el servidor).
@@ -148,3 +162,63 @@ def eliminar_producto(producto_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
 
     del _productos[producto_id]
+    
+
+# --- ENDPOINTS EXCLUSIVOS NEO4J (SISTEMA DE RECOMENDACIONES) ---
+
+@app.get("/productos/{producto_id}/recomendados", response_model=list[RecomendacionItem])
+def obtener_recomendados_item_based(producto_id: int):
+    """
+    PANTALLA 1: Detalle del Producto.
+    Filtrado colaborativo Item-Based: "Los usuarios que compraron esto también compraron..."
+    """
+    neo4j_id = f"p{producto_id}"
+    
+    query = """
+    MATCH (p_actual:Producto {id: $prod_id})<-[:COMPRO]-(u:Usuario)-[:COMPRO]->(p_recomendado:Producto) 
+    WHERE p_actual <> p_recomendado 
+    RETURN p_recomendado.id AS id, p_recomendado.titulo AS titulo, count(u) AS relevancia 
+    ORDER BY relevancia DESC 
+    LIMIT 5; 
+    """
+    
+    with neo4j_db.get_session() as session:
+        resultado = session.run(query, prod_id=neo4j_id)
+        recomendaciones = [
+            RecomendacionItem(
+                id_producto=registro["id"],
+                titulo=registro["titulo"],
+                relevancia=registro["relevancia"]
+            )
+            for registro in resultado
+        ]
+        
+    return recomendaciones
+
+
+@app.get("/usuarios/{usuario_id}/home-sugerencias", response_model=list[SugerenciaHome])
+def obtener_sugerencias_home(usuario_id: str):
+    """
+    PANTALLA 2: La Home Page Personalizada.
+    Filtrado colaborativo por afinidad de géneros consumidos, excluyendo lo visto o comprado.
+    """
+    query = """
+    MATCH (u:Usuario {id: $user_id})-[:COMPRO]->(:Producto)-[:PERTENECE_A]->(g:Genero)<-[:PERTENECE_A]-(p_sugerido:Producto)
+    WHERE NOT (u)-[:COMPRO]->(p_sugerido) AND NOT (u)-[:VIO]->(p_sugerido)
+    RETURN p_sugerido.id AS id, p_sugerido.titulo AS titulo, count(g) AS puntos_afinidad
+    ORDER BY puntos_afinidad DESC
+    LIMIT 5;
+    """
+    
+    with neo4j_db.get_session() as session:
+        resultado = session.run(query, user_id=usuario_id)
+        sugerencias = [
+            SugerenciaHome(
+                id_producto=registro["id"],
+                titulo=registro["titulo"],
+                puntos_afinidad=registro["puntos_afinidad"]
+            )
+            for registro in resultado
+        ]
+        
+    return sugerencias
