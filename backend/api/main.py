@@ -2,8 +2,12 @@ from itertools import count
 
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
+# Para Cassandra
+import uuid
+from datetime import datetime
 
 from backend.db.neo4j import neo4j as neo4j_db
+from backend.db.cassandra import cassandra as cassandra_db
 
 app = FastAPI(
     title="Crunchi Store API",
@@ -45,7 +49,7 @@ class ProductoUpdate(BaseModel):
 class Producto(ProductoBase):
     id: int
     
-    
+# Modelos Neo4J
 class RecomendacionItem(BaseModel):
     id_producto: str
     titulo: str
@@ -57,6 +61,18 @@ class SugerenciaHome(BaseModel):
     titulo: str
     puntos_afinidad: int
 
+# Modelos Cassandra
+class EventoPorUsuarioOut(BaseModel):
+    id_usuario: uuid.UUID
+    fecha_hora: datetime
+    evento: str = Field(..., description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
+    id_producto: uuid.UUID
+
+class EventoPorProductoOut(BaseModel):
+    id_producto: uuid.UUID
+    evento: str = Field(..., description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
+    fecha_hora: datetime
+    id_usuario: uuid.UUID
 
 # Almacenamiento en memoria (se reinicia al reiniciar el servidor).
 _id_seq = count(1)
@@ -165,7 +181,6 @@ def eliminar_producto(producto_id: int) -> None:
     
 
 # --- ENDPOINTS EXCLUSIVOS NEO4J (SISTEMA DE RECOMENDACIONES) ---
-
 @app.get("/productos/{producto_id}/recomendados", response_model=list[RecomendacionItem])
 def obtener_recomendados_item_based(producto_id: int):
     """
@@ -222,3 +237,71 @@ def obtener_sugerencias_home(usuario_id: str):
         ]
         
     return sugerencias
+
+# --- ENDPOINTS CASSANDRA (PANEL DE ANALÍTICA - SOLO LECTURA REAL) ---
+@app.get("/usuario/{id_usuario}", response_model=list[EventoPorUsuarioOut])
+def obtener_user_journey(id_usuario: uuid.UUID):
+    """
+    BLOQUE 1: Rastreador de Usuarios (User Journey Tracker)
+    
+    Devuelve TODOS los campos de la tabla 'eventos_por_usuario' ordenados 
+    cronológicamente de manera descendente (fecha_hora DESC) para auditar 
+    el flujo completo de clics de un cliente.
+    """
+    session = cassandra_db.get_session()
+    
+    # Traemos todos los campos tal cual están en tu modelo CQL
+    query = "SELECT id_usuario, fecha_hora, evento, id_producto FROM eventos_por_usuario WHERE id_usuario = ?"
+    
+    try:
+        resultado = session.execute(query, (id_usuario,))
+        return [
+            EventoPorUsuarioOut(
+                id_usuario=fila.id_usuario,
+                fecha_hora=fila.fecha_hora,
+                evento=fila.evento,
+                id_producto=fila.id_producto
+            )
+            for fila in resultado
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al consultar Cassandra: {str(e)}"
+        )
+
+
+@app.get("/producto/{id_producto}/embudo", response_model=list[EventoPorProductoOut])
+def obtener_embudo_producto(id_producto: uuid.UUID, evento: str):
+    """
+    BLOQUE 2: Embudo por Producto (Product Conversion Funnel)
+    
+    Devuelve TODOS los campos de la tabla 'eventos_por_producto' filtrando por 
+    la clave compuesta ((id_producto, evento)) y ordenado por tiempo (fecha_hora DESC).
+    Ideal para marketing y KPIs de comportamiento caliente de compra.
+    """
+    session = cassandra_db.get_session()
+    
+    # Traemos todos los campos tal cual están en tu modelo CQL
+    query = """
+        SELECT id_producto, evento, fecha_hora, id_usuario 
+        FROM eventos_por_producto 
+        WHERE id_producto = ? AND evento = ?
+    """
+    
+    try:
+        resultado = session.execute(query, (id_producto, evento))
+        return [
+            EventoPorProductoOut(
+                id_producto=fila.id_producto,
+                evento=fila.evento,
+                fecha_hora=fila.fecha_hora,
+                id_usuario=fila.id_usuario
+            )
+            for fila in resultado
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al consultar Cassandra: {str(e)}"
+        )
