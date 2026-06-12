@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { Product } from '@/types/product';
 
 const formatearPrecio = (precio: number) =>
@@ -12,7 +13,10 @@ const ProductCard = ({ producto }: { producto: Product }) => {
     const imagen = producto.imagenes[0] ?? '/logo.png';
 
     return (
-        <article className="shrink-0 w-52 bg-white/5 rounded-2xl overflow-hidden border border-white/10 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1">
+        <Link
+            href={`/productos/${producto.id}`}
+            className="shrink-0 w-52 bg-white/5 rounded-2xl overflow-hidden border border-white/10 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1"
+        >
             <div className="relative w-full h-64 bg-black/40">
                 <Image
                     src={imagen}
@@ -27,7 +31,7 @@ const ProductCard = ({ producto }: { producto: Product }) => {
                 <p className="text-white/40 font-inter text-xs uppercase tracking-wide">{producto.marca}</p>
                 <p className="text-primary font-ubuntu font-bold text-lg mt-1">{formatearPrecio(producto.precio)}</p>
             </div>
-        </article>
+        </Link>
     );
 };
 

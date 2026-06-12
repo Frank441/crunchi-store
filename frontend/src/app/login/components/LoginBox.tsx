@@ -13,7 +13,7 @@ interface LoginFormInputs {
 const LoginBox = () => {
     const [passwordInputType, setPasswordInputType] = useState<'password' | 'text'>('password');
     const { login, isLoading, isLoggedIn } = useLogin();
-    const { push } = useRouter();
+    const { push, refresh } = useRouter();
     const { handleSubmit, control, watch, formState: { errors } } = useForm<LoginFormInputs>({
         defaultValues: { email: '', password: '' },
         mode: 'onChange'
@@ -31,8 +31,12 @@ const LoginBox = () => {
     const enabledClasses = 'bg-primary text-black cursor-pointer hover:bg-primary-hovered';
 
     useEffect(() => {
-        if (isLoggedIn) push('/home');
-    }, [isLoggedIn, push]);
+        if (isLoggedIn) {
+            push('/home');
+            // refresh para que el layout (server) reconozca la sesión y el header muestre "Cerrar sesión".
+            refresh();
+        }
+    }, [isLoggedIn, push, refresh]);
 
     return (
         <form className="w-1/3 mt-8" onSubmit={handleSubmit(values => {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Ubuntu, Inter } from "next/font/google";
 import { Header } from '@/components';
 import { ThemeRegistry } from '@/lib/mui';
+import { getSessionUser } from '@/lib/auth/getSessionUser';
 import "./globals.css";
 
 const ubuntu = Ubuntu({
@@ -28,11 +29,13 @@ export const metadata: Metadata = {
   icons: "/logo.png"
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getSessionUser();
+
   return (
     <html
       lang="es"
@@ -41,7 +44,7 @@ export default function RootLayout({
     >
       <body className={`${ubuntu.className} ${inter.className}`}>
         <ThemeRegistry>
-          <Header />
+          <Header isAuthenticated={!!user} />
           {children}
         </ThemeRegistry>
       </body>

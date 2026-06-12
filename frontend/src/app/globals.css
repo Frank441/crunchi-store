@@ -16,5 +16,33 @@
 
 }
 
+/* Reservamos el gutter del scrollbar siempre. Así el header fijo (w-full, que
+   ignora el ancho de la barra) y el contenido en flujo no se desalinean entre
+   páginas que scrollean (home) y las que no (detalle). */
+html {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;                                  /* Firefox */
+  scrollbar-color: var(--color-primary) transparent;      /* Firefox */
+}
+
+/* Scrollbar en el azul de marca (Chrome / Edge / WebKit). */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary-hovered);
+}
+
 
 

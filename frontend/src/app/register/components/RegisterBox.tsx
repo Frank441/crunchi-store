@@ -14,7 +14,7 @@ interface RegisterFormInputs {
 const RegisterBox = () => {
     const [passwordInputType, setPasswordInputType] = useState<'password' | 'text'>('password');
     const { register, isLoading, isRegistered, errors: apiError } = useRegister();
-    const { push } = useRouter();
+    const { push, refresh } = useRouter();
     const { handleSubmit, control, watch, formState: { errors } } = useForm<RegisterFormInputs>({
         defaultValues: { alias: '', email: '', password: '' },
         mode: 'onChange'
@@ -33,8 +33,12 @@ const RegisterBox = () => {
     const enabledClasses = 'bg-primary text-black cursor-pointer hover:bg-primary-hovered';
 
     useEffect(() => {
-        if (isRegistered) push('/home');
-    }, [isRegistered, push]);
+        if (isRegistered) {
+            push('/home');
+            // refresh para que el layout (server) reconozca la sesión y el header muestre "Cerrar sesión".
+            refresh();
+        }
+    }, [isRegistered, push, refresh]);
 
     return (
         <form className="w-1/3 mt-8" onSubmit={handleSubmit(values => {

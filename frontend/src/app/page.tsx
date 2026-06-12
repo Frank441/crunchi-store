@@ -2,8 +2,8 @@ import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="w-full relative flex flex-col items-center justify-center h-full">
-      <div className="w-full absolute h-full bg-linear-to-r from-black to-transparent z-10">
+    <div className="w-full relative flex flex-col items-center justify-center h-screen overflow-hidden">
+      <div className="w-full absolute h-full bg-linear-to-r from-black via-transparent to-black z-10">
       </div>
       <Image src="/hero_image_background.webp" alt="Hero Background Image" width={1920} height={1080} className="w-7xl" style={{maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)'}} />
       <div className="w-6xl absolute z-20 flex flex-col items-start justify-start gap-8">

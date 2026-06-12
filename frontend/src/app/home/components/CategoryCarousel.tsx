@@ -44,7 +44,7 @@ const CategoryCarousel = ({ titulo, productos }: CategoryCarouselProps) => {
             </div>
             <div
                 ref={trackRef}
-                className="flex gap-4 overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="flex gap-4 overflow-x-auto scroll-smooth pt-3 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {productos.map((producto) => (
                     <ProductCard key={producto.id} producto={producto} />
