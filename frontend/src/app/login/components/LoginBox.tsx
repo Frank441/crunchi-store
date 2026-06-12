@@ -1,42 +1,107 @@
 'use client';
 import { InputAdornment, TextField } from '@mui/material';
-import { useState} from 'react';
+import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { useLogin } from '@/hooks/useLogin';
+import { useRouter } from 'next/navigation';
+
+interface LoginFormInputs {
+    email: string;
+    password: string;
+}
 
 const LoginBox = () => {
     const [passwordInputType, setPasswordInputType] = useState<'password' | 'text'>('password');
-    const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
+    const { login, isLoading, isLoggedIn } = useLogin();
+    const { push } = useRouter();
+    const { handleSubmit, control, watch, formState: { errors } } = useForm<LoginFormInputs>({
+        defaultValues: { email: '', password: '' },
+        mode: 'onChange'
+    });
+
+    const email = watch('email');
+    const password = watch('password');
+    const isButtonEnabled = !errors.email && !errors.password && email && password;
 
     const togglePasswordType = () => {
-        if (passwordInputType === 'password') setPasswordInputType('text')
-        if (passwordInputType === 'text') setPasswordInputType('password')
-    }
+        setPasswordInputType(prev => prev === 'password' ? 'text' : 'password');
+    };
 
-    const disableButton = () =>{
-        return setButtonDisabled(true);
-    }
+    const disabledClasses = 'bg-transparent border-4 border-red/30 text-gray/30 cursor-not-allowed';
+    const enabledClasses = 'bg-primary text-black cursor-pointer hover:bg-primary-hovered';
 
-    const enableButton = () => {
-        return setButtonDisabled(false)
-    }
-    const activeStyles = 
+    useEffect(() => {
+        if (isLoggedIn) push('/home');
+    }, [isLoggedIn, push]);
+
     return (
-        <form className="w-1/3 mt-8">
-            <TextField variant='standard' label="Dirección de email" color='primary' margin='normal' fullWidth />
-            <TextField variant='standard' label="Contraseña" type={passwordInputType} color='primary' margin='normal' fullWidth
-                slotProps={{
-                    input: {
-                        endAdornment: (
-                            <InputAdornment position='end' onClick={togglePasswordType}>
-                                <span className="text-white/60 font-helvetica text-xs uppercase font-bold tracking-wide cursor-pointer hover:text-white/90 transition-colors duration-300">Mostrar</span>
-                            </InputAdornment>
-                        )
-
+        <form className="w-1/3 mt-8" onSubmit={handleSubmit(values => {
+            login(values.email, values.password)
+        })}>
+            <Controller
+                name="email"
+                control={control}
+                rules={{
+                    required: 'El email es requerido',
+                    pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: 'Email inválido'
                     }
                 }}
+                render={({ field }) => (
+                    <TextField
+                        {...field}
+                        variant='standard'
+                        label="Dirección de email"
+                        color='primary'
+                        margin='normal'
+                        fullWidth
+                        error={!!errors.email}
+                        helperText={errors.email?.message}
+                    />
+                )}
             />
-            <button className="bg-primary mt-12 w-full text-center py-2 rounded-full cursor-pointer text-bold uppercase text-black hover:bg-primary-hovered transition-all duration-300">Acceder</button>
+            <Controller
+                name="password"
+                control={control}
+                rules={{
+                    required: 'La contraseña es requerida',
+                    minLength: {
+                        value: 6,
+                        message: 'Mínimo 6 caracteres'
+                    }
+                }}
+                render={({ field }) => (
+                    <TextField
+                        {...field}
+                        variant='standard'
+                        label="Contraseña"
+                        type={passwordInputType}
+                        color='primary'
+                        margin='normal'
+                        fullWidth
+                        error={!!errors.password}
+                        helperText={errors.password?.message}
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position='end' onClick={togglePasswordType}>
+                                        <span className="text-white/60 font-helvetica text-xs uppercase font-bold tracking-wide hover:text-white/90 transition-colors duration-300">Mostrar</span>
+                                    </InputAdornment>
+                                )
+                            }
+                        }}
+                    />
+                )}
+            />
+            <button
+                disabled={!isButtonEnabled || isLoading}
+                className={`mt-12 w-full text-center py-2 rounded-full text-bold uppercase transition-all duration-300 ${isButtonEnabled ? enabledClasses : disabledClasses}`}
+            >
+                {!isLoading ? 'Acceder' : 'Cargando...'}
+            </button>
         </form>
-    )
-}
+    );
+};
 
 export default LoginBox;
