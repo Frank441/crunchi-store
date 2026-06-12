@@ -3,33 +3,28 @@
 import { API_URL } from '@/constants';
 import { useState, useCallback } from 'react';
 
-type LoginFields = {
-    email: string;
-    password: string;
-}
-
-export const useLogin = () => {
-    const [errors, setErrors] = useState<string | null | LoginFields>(null);
+export const useRegister = () => {
+    const [errors, setErrors] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isRegistered, setIsRegistered] = useState(false);
 
-    const login = useCallback(async (email: string, password: string) => {
+    const register = useCallback(async (email: string, password: string, alias: string) => {
         setIsLoading(true);
         setErrors(null);
-        
+
         try {
-            const response = await fetch(`${API_URL}/auth/login`, {
+            const response = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password, alias })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                setErrors(typeof errorData.detail === 'string' ? errorData.detail : 'Email o contraseña incorrectos');
+                setErrors(typeof errorData.detail === 'string' ? errorData.detail : 'No se pudo completar el registro');
             } else {
-                setIsLoggedIn(true);
+                setIsRegistered(true);
             }
         } catch (error) {
             setErrors('An unexpected error occurred');
@@ -37,6 +32,6 @@ export const useLogin = () => {
             setIsLoading(false);
         }
     }, []);
-    
-    return { login, errors, isLoading, isLoggedIn };
+
+    return { register, errors, isLoading, isRegistered };
 }
