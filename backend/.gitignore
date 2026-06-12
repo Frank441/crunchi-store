@@ -21,6 +21,7 @@ dist/
 # Variables de entorno
 .env
 .env.*
+!.env.example
 
 # IDEs
 .vscode/

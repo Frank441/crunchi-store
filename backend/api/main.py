@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -26,6 +27,16 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# allow_credentials=True exige un origin explícito.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
 def raiz() -> dict[str, str]:

@@ -2,6 +2,11 @@
 pymongo
 python-dotenv
 
+# Auth (login/registro + sesiones)
+bcrypt
+email-validator
+redis
+
 # API (FastAPI)
 fastapi
 uvicorn[standard]
