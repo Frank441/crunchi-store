@@ -16,6 +16,6 @@ export async function getSessionUser() {
 
     if (!res.ok) return null;
 
-    const data = await res.json();
-    return data.user;
+    // /auth/me devuelve el usuario plano: { id, email, alias, rol }.
+    return await res.json();
 }

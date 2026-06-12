@@ -59,6 +59,20 @@ def destruir_sesion(token: str) -> None:
     redis_client.delete(_session_key(token))
 
 
+def _set_session_cookie(response: Response, usuario: dict) -> None:
+    """Crea la sesión en Redis y adjunta la cookie httpOnly a la respuesta."""
+    token = crear_sesion(usuario)
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="lax",  # front y back comparten el sitio localhost.
+        secure=False,     # En producción (HTTPS) poner True.
+        max_age=SESSION_TTL,
+        path="/",
+    )
+
+
 def usuario_actual(session_token: str | None = Cookie(default=None)) -> dict:
     """Dependencia: valida la cookie de sesión contra Redis y renueva el TTL (sliding)."""
     if not session_token:
@@ -82,7 +96,7 @@ def usuario_actual(session_token: str | None = Cookie(default=None)) -> dict:
 # --- Endpoints ---
 
 @router.post("/register", response_model=UsuarioOut, status_code=status.HTTP_201_CREATED)
-def registrar(datos: UsuarioRegister):
+def registrar(datos: UsuarioRegister, response: Response):
     documento = {
         "email": datos.email.lower(),
         "password_hash": hash_password(datos.password),
@@ -97,6 +111,9 @@ def registrar(datos: UsuarioRegister):
             status_code=status.HTTP_409_CONFLICT,
             detail="Ya existe un usuario con ese email.",
         )
+
+    # Dejamos la sesión iniciada para que el alta lleve directo al home.
+    _set_session_cookie(response, {**documento, "_id": resultado.inserted_id})
 
     return UsuarioOut(
         id=str(resultado.inserted_id),
@@ -115,16 +132,7 @@ def login(datos: UsuarioLogin, response: Response):
             detail="Email o contraseña incorrectos.",
         )
 
-    token = crear_sesion(usuario)
-    response.set_cookie(
-        key=COOKIE_NAME,
-        value=token,
-        httponly=True,
-        samesite=None,
-        secure=False,  # En producción (HTTPS) poner True.
-        max_age=SESSION_TTL,
-        path="/",
-    )
+    _set_session_cookie(response, usuario)
 
     return UsuarioOut(
         id=str(usuario["_id"]),

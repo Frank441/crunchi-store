@@ -17,7 +17,9 @@ const Header = () => {
         push('/login')
     }
 
-    const showButtons = isMounted && pathName !== "/login";
+    // Ocultamos los botones de marketing en las vistas autenticadas / de auth.
+    const hiddenOn = ["/login", "/register", "/home"];
+    const showButtons = isMounted && !hiddenOn.includes(pathName);
 
     return (
         <header className="w-full bg-background/70 py-4 fixed z-100 top-0.5 flex items-center justify-around" suppressHydrationWarning>
