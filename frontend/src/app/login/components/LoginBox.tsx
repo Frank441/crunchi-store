@@ -18,7 +18,6 @@ const LoginBox = () => {
     const enableButton = () => {
         return setButtonDisabled(false)
     }
-    const activeStyles = 
     return (
         <form className="w-1/3 mt-8">
             <TextField variant='standard' label="Dirección de email" color='primary' margin='normal' fullWidth />

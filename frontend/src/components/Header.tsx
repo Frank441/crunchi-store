@@ -21,6 +21,7 @@ const Header = () => {
                     </div>
             {pathName !== "/login" &&
                     <div className="flex items-center gap-4">
+                        <button onClick={() => push('/cart')} className="bg-transparent text-[14px] border-2 border-white/70 text-white/70 font-helvetica font-semibold uppercase py-2 px-4 rounded-full cursor-pointer transition-all duration-300 tracking-widest hover:text-white hover:border-white line-clamp-3">Carrito</button>
                         <button onClick={goToLogin} className="bg-black text-[14px] text-white uppercase py-2 px-4 rounded-full cursor-pointer transition-all duration-300 hover:bg-gray-900 font-semibold font-helvetica tracking-widest">Acceder</button>
                         <button className="bg-transparent text-[14px] border-2 border-white/70 text-white/70 font-helvetica font-semibold uppercase py-2 px-4 rounded-full cursor-pointer transition-all duration-300 tracking-widest hover:text-white hover:border-white line-clamp-3">Explorar</button>
                     </div>
