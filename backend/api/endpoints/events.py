@@ -1,12 +1,12 @@
-from fastapi import HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from datetime import datetime
 from db.cassandra import cassandra as cassandra_db
-from api.main import app
 from api.classes import EventoInsertInput
 
+router = APIRouter(tags=["eventos"])
 
 
-@app.post("/cassandra/evento", status_code=status.HTTP_201_CREATED)
+@router.post("/cassandra/evento", status_code=status.HTTP_201_CREATED)
 def insertar_evento_manual(datos: EventoInsertInput):
     """
     Simulación de envío de eventos desde el Front.

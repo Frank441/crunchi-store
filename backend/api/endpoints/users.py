@@ -1,13 +1,13 @@
-from api.main import app
 from api.classes import SugerenciaHome, UsuarioNeo4jInput, AccionUsuarioNeo4jInput, ProductoNeo4jInput, EventoPorUsuarioOut
 import uuid
 from db.neo4j import neo4j as neo4j_db
 from db.cassandra import cassandra as cassandra_db
-from fastapi import HTTPException, status
+from fastapi import APIRouter, HTTPException, status
+
+router = APIRouter(tags=["usuarios-analitica"])
 
 
-
-@app.get("/usuarios/{usuario_id}/home-sugerencias", response_model=list[SugerenciaHome])
+@router.get("/usuarios/{usuario_id}/home-sugerencias", response_model=list[SugerenciaHome])
 def obtener_sugerencias_home(usuario_id: str):
     """
     PANTALLA 2: La Home Page Personalizada.
@@ -34,7 +34,7 @@ def obtener_sugerencias_home(usuario_id: str):
         
     return sugerencias
 
-@app.post("/neo4j/usuario", status_code=status.HTTP_201_CREATED)
+@router.post("/neo4j/usuario", status_code=status.HTTP_201_CREATED)
 def insertar_usuario_neo4j(datos: UsuarioNeo4jInput):
     """
     Crea o actualiza de forma manual un nodo Usuario en el grafo.
@@ -52,7 +52,7 @@ def insertar_usuario_neo4j(datos: UsuarioNeo4jInput):
             raise HTTPException(status_code=500, detail=f"Error en Neo4j: {str(e)}")
 
 
-@app.post("/neo4j/accion-usuario", status_code=status.HTTP_201_CREATED)
+@router.post("/neo4j/accion-usuario", status_code=status.HTTP_201_CREATED)
 def registrar_accion_usuario_neo4j(datos: AccionUsuarioNeo4jInput):
     """
     Crea interacciones dinámicas de grafos (relaciones COMPRO o VIO) desde el front
@@ -85,7 +85,7 @@ def registrar_accion_usuario_neo4j(datos: AccionUsuarioNeo4jInput):
         
 
 # --- ENDPOINTS CASSANDRA (PANEL DE ANALÍTICA - SOLO LECTURA REAL) ---
-@app.get("/usuario/{id_usuario}", response_model=list[EventoPorUsuarioOut])
+@router.get("/usuario/{id_usuario}", response_model=list[EventoPorUsuarioOut])
 def obtener_user_journey(id_usuario: uuid.UUID):
     """
     BLOQUE 1: Rastreador de Usuarios (User Journey Tracker)
