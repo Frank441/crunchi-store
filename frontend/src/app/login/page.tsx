@@ -1,6 +1,11 @@
 import PageContent from './PageContent';
+import { getSessionUser } from '@/lib/auth/getSessionUser';
+import { redirect } from 'next/navigation';
 
-export default function LoginPage(){
+export default async function LoginPage() {
+    const user = await getSessionUser();
+
+    if (user) redirect('/home');
     return (
         <PageContent />
     )

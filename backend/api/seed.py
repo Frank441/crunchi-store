@@ -1,5 +1,6 @@
-from api.classes import Producto, ProductoCreate
-from api.main import _productos, _id_seq
+from api.classes import ProductoCreate
+from db.mongo import mongo as mongo_db
+
 
 def seed() -> None:
     iniciales = [
@@ -33,9 +34,21 @@ def seed() -> None:
             talles=["s", "m", "l", "xl", "xxl"],
         ),
     ]
+
+    # Reinicio limpio: vaciamos catálogo y reseteamos el contador de ids.
+    mongo_db.productos.delete_many({})
+    mongo_db.contadores.delete_one({"_id": "productos"})
+    mongo_db.init_indexes()
+
+    documentos = []
     for p in iniciales:
-        nuevo_id = next(_id_seq)
-        _productos[nuevo_id] = Producto(id=nuevo_id, **p.model_dump())
+        nuevo_id = mongo_db.siguiente_id("productos")
+        documentos.append({"id": nuevo_id, **p.model_dump()})
+
+    if documentos:
+        mongo_db.productos.insert_many(documentos)
+
+    print(f"[seed] {len(documentos)} productos insertados en Mongo (db='{mongo_db.MONGO_DB}').")
 
 
 if __name__ == "__main__":

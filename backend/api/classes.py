@@ -1,6 +1,23 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 import uuid
+
+class UsuarioRegister(BaseModel):
+    email: EmailStr = Field(..., examples=["ana@crunchi.store"])
+    password: str   = Field(..., min_length=6, examples=["secreto123"])
+    alias: str      = Field(..., min_length=1, examples=["Ana"])
+
+
+class UsuarioLogin(BaseModel):
+    email: EmailStr = Field(..., examples=["ana@crunchi.store"])
+    password: str   = Field(..., examples=["secreto123"])
+
+
+class UsuarioOut(BaseModel):
+    id: str
+    email: EmailStr
+    alias: str
+    rol: str
 
 class ProductoBase(BaseModel):
     # Campos comunes a toda categoría.

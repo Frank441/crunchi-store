@@ -37,7 +37,7 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${ubuntu.variable} ${inter.variable} bg-background h-full antialiased`}
-      data-scroll-behavior="smooth"
+      suppressHydrationWarning
     >
       <body className={`${ubuntu.className} ${inter.className}`}>
         <ThemeRegistry>
