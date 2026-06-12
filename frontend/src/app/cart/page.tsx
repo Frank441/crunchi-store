@@ -57,12 +57,12 @@ export default function CartPage() {
 
   return (
     <div className="p-8 font-sans max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Mi Carrito (Redis)</h1>
-      
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Mi Carrito</h1>
+
       {error && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{error}</div>}
 
       <div className="flex gap-4 mb-8">
-        <button 
+        <button
           onClick={() => handleAddToCart(`p_${Math.floor(Math.random() * 50) + 1}`)}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
           disabled={loading}
