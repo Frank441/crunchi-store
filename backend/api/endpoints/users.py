@@ -85,20 +85,25 @@ def registrar_accion_usuario_neo4j(datos: AccionUsuarioNeo4jInput):
         
 
 # --- ENDPOINTS CASSANDRA (PANEL DE ANALÍTICA - SOLO LECTURA REAL) ---
-@router.get("/usuario/{id_usuario}", response_model=list[EventoPorUsuarioOut])
-def obtener_user_journey(id_usuario: uuid.UUID):
+@router.get("/usuario/{id_usuario}/journey", response_model=list[EventoPorUsuarioOut])
+def obtener_user_journey(id_usuario: int):
     """
-    BLOQUE 1: Rastreador de Usuarios (User Journey Tracker)
-    
-    Devuelve TODOS los campos de la tabla 'eventos_por_usuario' ordenados 
-    cronológicamente de manera descendente (fecha_hora DESC) para auditar 
-    el flujo completo de clics de un cliente.
+    BLOQUE 1: Rastreador de Usuarios (User Journey Tracker).
+ 
+    Devuelve todos los eventos de un usuario ordenados por fecha descendente.
+    La partition key es id_usuario (int), por lo que la lectura es O(1)
+    sin importar el volumen total de la tabla.
+ 
+    Útil para: auditoría, soporte técnico, análisis de comportamiento.
     """
     session = cassandra_db.get_session()
-    
-    # Traemos todos los campos tal cual están en tu modelo CQL
-    query = "SELECT id_usuario, fecha_hora, evento, id_producto FROM eventos_por_usuario WHERE id_usuario = ?"
-    
+ 
+    query = session.prepare("""
+        SELECT id_usuario, fecha_hora, evento, id_producto
+        FROM eventos_por_usuario
+        WHERE id_usuario = ?
+    """)
+ 
     try:
         resultado = session.execute(query, (id_usuario,))
         return [
@@ -106,12 +111,12 @@ def obtener_user_journey(id_usuario: uuid.UUID):
                 id_usuario=fila.id_usuario,
                 fecha_hora=fila.fecha_hora,
                 evento=fila.evento,
-                id_producto=fila.id_producto
+                id_producto=fila.id_producto,
             )
             for fila in resultado
         ]
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al consultar Cassandra: {str(e)}"
+            detail=f"Error al consultar Cassandra: {str(e)}",
         )

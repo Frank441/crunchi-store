@@ -12,12 +12,21 @@ FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 
 @asynccontextmanager
 async def lifespan(app: "FastAPI"):
-    # Creamos los índices de Mongo al arrancar. 
     from db.mongo import mongo as mongo_db
+    from db.cassandra.cassandra import inicializar_cassandra
+
     try:
         mongo_db.init_indexes()
+        print("[OK] MongoDB inicializado correctamente.")
     except Exception as e:
         print(f"[WARN] No se pudieron crear los índices de Mongo: {e}")
+
+    try:
+        inicializar_cassandra()
+        print("[OK] Cassandra inicializado correctamente.")
+    except Exception as e:
+        print(f"[WARN] No se pudo inicializar Cassandra: {e}")
+
     yield
 
 

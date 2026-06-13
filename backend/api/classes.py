@@ -1,6 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-import uuid
 
 class UsuarioRegister(BaseModel):
     email: EmailStr = Field(..., examples=["ana@crunchi.store"])
@@ -82,20 +81,22 @@ class AccionUsuarioNeo4jInput(BaseModel):
 
 # Modelos Cassandra
 class EventoPorUsuarioOut(BaseModel):
-    id_usuario: uuid.UUID
-    fecha_hora: datetime
-    evento: str = Field(..., description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
-    id_producto: uuid.UUID
-
+    id_usuario:  int
+    fecha_hora:  datetime
+    evento:      str = Field(..., description="VIEW_PRODUCT | ADD_TO_CART | PURCHASE_COMPLETE | ...")
+    id_producto: int
+ 
 class EventoPorProductoOut(BaseModel):
-    id_producto: uuid.UUID
-    evento: str = Field(..., description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
-    fecha_hora: datetime
-    id_usuario: uuid.UUID
-    
+    id_producto: int
+    evento:      str = Field(..., description="VIEW_PRODUCT | ADD_TO_CART | PURCHASE_COMPLETE | ...")
+    fecha_hora:  datetime
+    id_usuario:  int
+ 
 class EventoInsertInput(BaseModel):
-    id_usuario: uuid.UUID       = Field(..., examples=["123e4567-e89b-12d3-a456-426614174000"])
-    id_producto: uuid.UUID      = Field(..., examples=["987f6543-e21b-34c5-d678-987654321000"])
-    evento: str                 = Field(..., examples=["VIEW_PRODUCT"], description="'VIEW_PRODUCT', 'ADD_TO_CART', 'CHECKOUT'")
-    # Dejamos opcional la fecha para que, si el front no la envía, el backend use la hora actual exacta
-    fecha_hora: datetime | None = Field(None, description="Si se omite, se usa el timestamp actual.")
+    id_usuario:  int            = Field(..., examples=[1])
+    id_producto: int            = Field(..., examples=[3])
+    evento:      str            = Field(..., examples=["VIEW_PRODUCT"],
+                                        description="VIEW_PRODUCT | ADD_TO_CART | REMOVE_FROM_CART | "
+                                                    "CHECKOUT_START | PURCHASE_COMPLETE | ADD_TO_WISHLIST | LEAVE_REVIEW")
+    # Si el front no lo manda, el backend usa datetime.now()
+    fecha_hora:  datetime | None = Field(None, description="Si se omite, se usa el timestamp actual.")

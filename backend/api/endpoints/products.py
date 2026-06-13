@@ -103,25 +103,31 @@ def obtener_recomendados_item_based(producto_id: int):
     return recomendaciones
 
 
+# --- ENDPOINT CASSANDRA: Bloque 2 — Product Conversion Funnel ---
+ 
 @router.get("/producto/{id_producto}/embudo", response_model=list[EventoPorProductoOut])
-def obtener_embudo_producto(id_producto: uuid.UUID, evento: str):
+def obtener_embudo_producto(id_producto: int, evento: str):
     """
-    BLOQUE 2: Embudo por Producto (Product Conversion Funnel)
-
-    Devuelve TODOS los campos de la tabla 'eventos_por_producto' filtrando por
-    la clave compuesta ((id_producto, evento)) y ordenado por tiempo (fecha_hora DESC).
-    Ideal para marketing y KPIs de comportamiento caliente de compra.
+    BLOQUE 2: Embudo por Producto (Product Conversion Funnel).
+ 
+    Devuelve todos los eventos de un tipo específico sobre un producto,
+    ordenados por fecha descendente. La partition key compuesta
+    (id_producto, evento) hace que esta lectura sea O(1).
+ 
+    Útil para: marketing, KPIs de conversión, análisis de abandono de carrito.
+ 
+    Ejemplos de ?evento=: VIEW_PRODUCT, ADD_TO_CART, PURCHASE_COMPLETE
     """
     session = cassandra_db.get_session()
-
-    query = """
+ 
+    query = session.prepare("""
         SELECT id_producto, evento, fecha_hora, id_usuario
         FROM eventos_por_producto
         WHERE id_producto = ? AND evento = ?
-    """
-
+    """)
+ 
     try:
-        resultado = session.execute(query, (id_producto, evento))
+        resultado = session.execute(query, (id_producto, evento.upper()))
         return [
             EventoPorProductoOut(
                 id_producto=fila.id_producto,
@@ -136,7 +142,7 @@ def obtener_embudo_producto(id_producto: uuid.UUID, evento: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al consultar Cassandra: {str(e)}",
         )
-
+ 
 
 @router.post("/neo4j/producto", status_code=status.HTTP_201_CREATED)
 def insertar_producto_completo_neo4j(datos: ProductoNeo4jInput):
