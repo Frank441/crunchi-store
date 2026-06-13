@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
+import uuid 
 
 class UsuarioRegister(BaseModel):
     email: EmailStr = Field(..., examples=["ana@crunchi.store"])
@@ -83,20 +84,21 @@ class AccionUsuarioNeo4jInput(BaseModel):
 class EventoPorUsuarioOut(BaseModel):
     id_usuario:  int
     fecha_hora:  datetime
-    evento:      str = Field(..., description="VIEW_PRODUCT | ADD_TO_CART | PURCHASE_COMPLETE | ...")
+    id_evento:   uuid.UUID
+    evento:      str
     id_producto: int
+ 
  
 class EventoPorProductoOut(BaseModel):
     id_producto: int
-    evento:      str = Field(..., description="VIEW_PRODUCT | ADD_TO_CART | PURCHASE_COMPLETE | ...")
+    evento:      str
+    id_evento:   uuid.UUID
     fecha_hora:  datetime
     id_usuario:  int
  
+ 
 class EventoInsertInput(BaseModel):
-    id_usuario:  int            = Field(..., examples=[1])
-    id_producto: int            = Field(..., examples=[3])
-    evento:      str            = Field(..., examples=["VIEW_PRODUCT"],
-                                        description="VIEW_PRODUCT | ADD_TO_CART | REMOVE_FROM_CART | "
-                                                    "CHECKOUT_START | PURCHASE_COMPLETE | ADD_TO_WISHLIST | LEAVE_REVIEW")
-    # Si el front no lo manda, el backend usa datetime.now()
+    id_usuario:  int             = Field(..., examples=[1])
+    id_producto: int             = Field(..., examples=[3])
+    evento:      str             = Field(..., examples=["VIEW_PRODUCT"])
     fecha_hora:  datetime | None = Field(None, description="Si se omite, se usa el timestamp actual.")

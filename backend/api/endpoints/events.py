@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from cassandra.util import uuid_from_time
 from fastapi import APIRouter, HTTPException, status
 
 from api.classes import EventoInsertInput
@@ -10,33 +11,24 @@ router = APIRouter(tags=["eventos"])
 
 @router.post("/cassandra/evento", status_code=status.HTTP_201_CREATED)
 def insertar_evento_manual(datos: EventoInsertInput):
-    """
-    Registra un evento de navegación/compra desde el frontend.
-
-    Inserta en paralelo en 'eventos_por_usuario' y 'eventos_por_producto'
-    para mantener la desnormalización que permite lecturas O(1) en ambos
-    paneles de analítica (Query-Driven Architecture).
-
-    Los IDs son enteros (igual que en MongoDB) para garantizar coherencia
-    entre motores.
-    """
     session = cassandra_db.get_session()
 
     fecha_exacta = datos.fecha_hora if datos.fecha_hora else datetime.now()
+    id_evento = uuid_from_time(fecha_exacta)
 
     stmt_usuario = session.prepare("""
-        INSERT INTO eventos_por_usuario (id_usuario, fecha_hora, evento, id_producto)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO eventos_por_usuario (id_usuario, fecha_hora, id_evento, evento, id_producto)
+        VALUES (?, ?, ?, ?, ?)
     """)
 
     stmt_producto = session.prepare("""
-        INSERT INTO eventos_por_producto (id_producto, evento, fecha_hora, id_usuario)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO eventos_por_producto (id_producto, evento, id_evento, fecha_hora, id_usuario)
+        VALUES (?, ?, ?, ?, ?)
     """)
 
     try:
-        session.execute(stmt_usuario, (datos.id_usuario, fecha_exacta, datos.evento, datos.id_producto))
-        session.execute(stmt_producto, (datos.id_producto, datos.evento, fecha_exacta, datos.id_usuario))
+        session.execute(stmt_usuario, (datos.id_usuario, fecha_exacta, id_evento, datos.evento, datos.id_producto))
+        session.execute(stmt_producto, (datos.id_producto, datos.evento, id_evento, fecha_exacta, datos.id_usuario))
 
         return {
             "status": "success",

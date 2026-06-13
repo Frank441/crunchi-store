@@ -24,31 +24,36 @@ def inicializar_cassandra():
 
         # --- Tabla 1: User Journey ---
         # Partition key: id_usuario (int, mismo que MongoDB)
-        # Clustering key: fecha_hora DESC para obtener eventos recientes primero
+        # Clustering key: id_evento (timeuuid) DESC — ordena cronológicamente
+        # de forma única y sin colisiones, práctica recomendada en Cassandra
         _session.execute("""
             CREATE TABLE IF NOT EXISTS eventos_por_usuario (
                 id_usuario  int,
                 fecha_hora  timestamp,
+                id_evento   timeuuid,
                 evento      text,
                 id_producto int,
-                PRIMARY KEY (id_usuario, fecha_hora)
-            ) WITH CLUSTERING ORDER BY (fecha_hora DESC);
+                PRIMARY KEY (id_usuario, id_evento)
+            ) WITH CLUSTERING ORDER BY (id_evento DESC);
         """)
 
         # --- Tabla 2: Embudo de Producto ---
         # Partition key compuesta: (id_producto, evento) para responder
         # "¿Quiénes hicieron ADD_TO_CART en el producto 3?" en O(1)
+        # Clustering key: id_evento (timeuuid) DESC
         _session.execute("""
             CREATE TABLE IF NOT EXISTS eventos_por_producto (
                 id_producto int,
                 evento      text,
+                id_evento   timeuuid,
                 fecha_hora  timestamp,
                 id_usuario  int,
-                PRIMARY KEY ((id_producto, evento), fecha_hora)
-            ) WITH CLUSTERING ORDER BY (fecha_hora DESC);
+                PRIMARY KEY ((id_producto, evento), id_evento)
+            ) WITH CLUSTERING ORDER BY (id_evento DESC);
         """)
 
     return _session
+
 
 def cerrar_cassandra():
     global _cluster, _session
@@ -56,6 +61,7 @@ def cerrar_cassandra():
         _cluster.shutdown()
         _cluster = None
         _session = None
+
 
 def get_session():
     if _session is None:
