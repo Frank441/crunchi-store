@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getProduct } from '@/lib/products/getProducts';
 import { getSessionUser } from '@/lib/auth/getSessionUser';
+import { logEvent } from '@/lib/events/logEvent';
 import { BuyButton } from './components';
+import { EVENT_TYPES } from '@/constants/events';
 
 const formatearPrecio = (precio: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -20,6 +22,7 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
     const producto = await getProduct(id);
     if (!producto) notFound();
 
+    await logEvent(user.id, producto.id, EVENT_TYPES.VIEW_PRODUCT);
     const imagen = producto.imagenes[0] ?? '/logo.png';
 
     return (
