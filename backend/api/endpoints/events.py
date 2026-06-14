@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from cassandra.query import BatchStatement, BatchType
 from cassandra.util import uuid_from_time
 from fastapi import APIRouter, HTTPException, status
 
@@ -27,8 +28,10 @@ def insertar_evento_manual(datos: EventoInsertInput):
     """)
 
     try:
-        session.execute(stmt_usuario, (datos.id_usuario, fecha_exacta, id_evento, datos.evento, datos.id_producto))
-        session.execute(stmt_producto, (datos.id_producto, datos.evento, id_evento, fecha_exacta, datos.id_usuario))
+        batch = BatchStatement(batch_type=BatchType.UNLOGGED)
+        batch.add(stmt_usuario, (datos.id_usuario, fecha_exacta, id_evento, datos.evento, datos.id_producto))
+        batch.add(stmt_producto, (datos.id_producto, datos.evento, id_evento, fecha_exacta, datos.id_usuario))
+        session.execute(batch)
 
         return {
             "status": "success",
