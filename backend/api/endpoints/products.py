@@ -108,15 +108,19 @@ def insertar_producto_completo_neo4j(datos: ProductoNeo4jInput):
 # --- CASSANDRA ---
 
 @router.get("/producto/{id_producto}/embudo", response_model=list[EventoPorProductoOut])
-def obtener_embudo_producto(id_producto: int, evento: str):
+def obtener_embudo_producto(id_producto: int, evento: str, limit: int = 50):
     session = cassandra_db.get_session()
+    
+    # Añadimos LIMIT dinámico en la consulta CQL preparado para Cassandra
     query = session.prepare("""
         SELECT id_producto, evento, id_evento, fecha_hora, id_usuario
         FROM eventos_por_producto
         WHERE id_producto = ? AND evento = ?
+        LIMIT ?
     """)
     try:
-        resultado = session.execute(query, (id_producto, evento.upper()))
+        # Pasamos el parámetro de limitación a la ejecución de la consulta
+        resultado = session.execute(query, (id_producto, evento.upper(), limit))
         return [
             EventoPorProductoOut(
                 id_producto=fila.id_producto,

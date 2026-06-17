@@ -2,6 +2,7 @@
 Seed de Cassandra para Crunchi Store.
 350 registros en eventos_por_usuario, 550 en eventos_por_producto.
 
+docker run --name crunchi-cassandra -p 9042:9042 -d cassandra:latest
 python -m api.seed_cassandra
 
 """

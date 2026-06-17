@@ -70,15 +70,16 @@ def registrar_accion_usuario_neo4j(datos: AccionUsuarioNeo4jInput):
 # --- CASSANDRA ---
 
 @router.get("/usuario/{id_usuario}/journey", response_model=list[EventoPorUsuarioOut])
-def obtener_user_journey(id_usuario: int):
+def obtener_user_journey(id_usuario: int, limit: int = 20):
     session = cassandra_db.get_session()
     query = session.prepare("""
         SELECT id_usuario, fecha_hora, id_evento, evento, id_producto
         FROM eventos_por_usuario
         WHERE id_usuario = ?
+        LIMIT ?
     """)
     try:
-        resultado = session.execute(query, (id_usuario,))
+        resultado = session.execute(query, (id_usuario, limit))
         return [
             EventoPorUsuarioOut(
                 id_usuario=fila.id_usuario,
