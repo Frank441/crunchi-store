@@ -11,6 +11,7 @@ import os
 import random
 import sys
 from datetime import datetime
+import secrets
 
 from cassandra.cluster import Cluster
 from cassandra.util import uuid_from_time
@@ -63,7 +64,7 @@ def recrear_tablas(session) -> None:
 
     session.execute("""
         CREATE TABLE eventos_por_usuario (
-            id_usuario  int,
+            id_usuario  text,
             fecha_hora  timestamp,
             id_evento   timeuuid,
             evento      text,
@@ -78,7 +79,7 @@ def recrear_tablas(session) -> None:
             evento      text,
             id_evento   timeuuid,
             fecha_hora  timestamp,
-            id_usuario  int,
+            id_usuario  text,
             PRIMARY KEY ((id_producto, evento), id_evento)
         ) WITH CLUSTERING ORDER BY (id_evento DESC);
     """)
@@ -92,7 +93,7 @@ def seed() -> None:
         recrear_tablas(session)
 
         ids_productos = list(range(1, len(PRODUCTOS) + 1))
-        ids_usuarios = list(range(1, TOTAL_USUARIOS + 1))
+        ids_usuarios = [secrets.token_hex(12) for _ in range(TOTAL_USUARIOS)]
 
         stmt_usuario = session.prepare("""
             INSERT INTO eventos_por_usuario (id_usuario, fecha_hora, id_evento, evento, id_producto)

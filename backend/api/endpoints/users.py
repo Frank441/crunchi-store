@@ -9,7 +9,7 @@ router = APIRouter(tags=["usuarios-analitica"])
 # --- NEO4J ---
 
 @router.get("/usuarios/{usuario_id}/home-sugerencias", response_model=list[SugerenciaHome])
-def obtener_sugerencias_home(usuario_id: int):
+def obtener_sugerencias_home(usuario_id: str):
     query = """
     MATCH (u:Usuario {id: $user_id})-[:COMPRO]->(:Producto)-[:PERTENECE_A]->(g:Genero)<-[:PERTENECE_A]-(p_sugerido:Producto)
     WHERE NOT (u)-[:COMPRO]->(p_sugerido) AND NOT (u)-[:VIO]->(p_sugerido)
@@ -70,7 +70,7 @@ def registrar_accion_usuario_neo4j(datos: AccionUsuarioNeo4jInput):
 # --- CASSANDRA ---
 
 @router.get("/usuario/{id_usuario}/journey", response_model=list[EventoPorUsuarioOut])
-def obtener_user_journey(id_usuario: int, limit: int = 20):
+def obtener_user_journey(id_usuario: str, limit: int = 20):
     session = cassandra_db.get_session()
     query = session.prepare("""
         SELECT id_usuario, fecha_hora, id_evento, evento, id_producto

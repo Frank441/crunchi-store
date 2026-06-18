@@ -28,7 +28,7 @@ def inicializar_cassandra():
         # de forma única y sin colisiones, práctica recomendada en Cassandra
         _session.execute("""
             CREATE TABLE IF NOT EXISTS eventos_por_usuario (
-                id_usuario  int,
+                id_usuario  text,
                 fecha_hora  timestamp,
                 id_evento   timeuuid,
                 evento      text,
@@ -47,7 +47,7 @@ def inicializar_cassandra():
                 evento      text,
                 id_evento   timeuuid,
                 fecha_hora  timestamp,
-                id_usuario  int,
+                id_usuario  text,
                 PRIMARY KEY ((id_producto, evento), id_evento)
             ) WITH CLUSTERING ORDER BY (id_evento DESC);
         """)

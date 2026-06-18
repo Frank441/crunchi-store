@@ -1,4 +1,5 @@
 import random
+import secrets
 from faker import Faker
 from neo4j import GraphDatabase
 
@@ -25,7 +26,7 @@ class IngestadorNeo4j:
         
         # Listas para trackear los IDs creados internamente
         generos = ["Shonen", "Seinen", "Shojo", "Mecha", "Isekai"] # 5 Nodos
-        usuarios_ids = list(range(1, 46))            # 45 Nodos
+        usuarios_ids = [secrets.token_hex(12) for _ in range(45)]            # 45 Nodos
         productos_ids = list(range(1, 51))           # 50 Nodos (IDs 1 al 50)
 
         with self.driver.session() as session:

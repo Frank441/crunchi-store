@@ -55,34 +55,34 @@ class Producto(ProductoBase):
     
 # Modelos Neo4J
 class RecomendacionItem(BaseModel):
-    id_producto: str
+    id_producto: int
     titulo: str
     relevancia: int
 
 
 class SugerenciaHome(BaseModel):
-    id_producto: str
+    id_producto: int
     titulo: str
     puntos_afinidad: int
     
 class UsuarioNeo4jInput(BaseModel):
-    id_usuario: str = Field(..., examples=["u1"])
+    id_usuario: str = Field(..., examples=["60a7c9f6d4d12c001f3e7b4a"])
     alias: str      = Field(..., examples=["Maximo"])
 
 class ProductoNeo4jInput(BaseModel):
-    id_producto: str = Field(..., examples=["p1"])
+    id_producto: int = Field(..., examples=[1])
     titulo: str      = Field(..., examples=["Berserk Vol. 1"])
     formato: str     = Field(..., examples=["Manga"])
     genero: str      = Field(..., examples=["Seinen"])
 
 class AccionUsuarioNeo4jInput(BaseModel):
-    id_usuario: str  = Field(..., examples=["u1"])
-    id_producto: str = Field(..., examples=["p1"])
+    id_usuario: str = Field(..., examples=["60a7c9f6d4d12c001f3e7b4a"])
+    id_producto: int = Field(..., examples=[1])
     relacion: str    = Field(..., examples=["COMPRO"], description="'COMPRO' o 'VIO'")
 
 # Modelos Cassandra
 class EventoPorUsuarioOut(BaseModel):
-    id_usuario:  int
+    id_usuario:  str
     fecha_hora:  datetime
     id_evento:   uuid.UUID
     evento:      str
@@ -94,11 +94,11 @@ class EventoPorProductoOut(BaseModel):
     evento:      str
     id_evento:   uuid.UUID
     fecha_hora:  datetime
-    id_usuario:  int
+    id_usuario:  str
  
  
 class EventoInsertInput(BaseModel):
-    id_usuario:  int             = Field(..., examples=[1])
+    id_usuario:  str             = Field(..., examples=["60a7c9f6d4d12c001f3e7b4a"])
     id_producto: int             = Field(..., examples=[3])
     evento:      str             = Field(..., examples=["VIEW_PRODUCT"])
     fecha_hora:  datetime | None = Field(None, description="Si se omite, se usa el timestamp actual.")

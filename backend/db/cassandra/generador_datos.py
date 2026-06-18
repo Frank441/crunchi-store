@@ -1,6 +1,7 @@
 import uuid
 import random
 from datetime import datetime, timedelta
+import secrets
 from faker import Faker
 from cassandra.cluster import Cluster
 
@@ -35,11 +36,11 @@ PESOS_EVENTOS = [0.10, 0.15, 0.35, 0.15, 0.05, 0.10, 0.05, 0.02, 0.03]
 def generar_datos_falsos(session):
     print("Iniciando generación de datos con Faker...")
 
-    # Generamos 50 UUIDs que representarán los productos (IDs del 1 al 50)
-    productos_uuids = [uuid.uuid4() for _ in range(50)]
+    # Generamos 50 IDs de producto (IDs del 1 al 50)
+    productos_ids = list(range(1, 51))
     
     # Generamos un pool de 30 usuarios recurrentes para que el historial tenga sentido
-    usuarios_uuids = [uuid.uuid4() for _ in range(30)]
+    usuarios_ids = [secrets.token_hex(12) for _ in range(30)]
 
     # ========================================================
     # POBLAR TABLA 1: eventos_por_usuario (350 registros)
@@ -50,11 +51,11 @@ def generar_datos_falsos(session):
         VALUES (%s, %s, %s, %s)
     """
     for _ in range(350):
-        id_user = random.choice(usuarios_uuids)
+        id_user = random.choice(usuarios_ids)
         # Generar una fecha aleatoria en los últimos 30 días
         fecha = fake.date_time_between(start_date='-30d', end_date='now')
         evento = random.choices(EVENTOS_POSIBLES, weights=PESOS_EVENTOS)[0]
-        id_prod = random.choice(productos_uuids) if evento not in ["HOME_PAGE_VISIT", "SEARCH"] else None
+        id_prod = random.choice(productos_ids) if evento not in ["HOME_PAGE_VISIT", "SEARCH"] else None
         
         session.execute(query_usuario, (id_user, fecha, evento, id_prod))
 
@@ -68,12 +69,12 @@ def generar_datos_falsos(session):
         VALUES (%s, %s, %s, %s)
     """
     for _ in range(550):
-        id_prod = random.choice(productos_uuids)
+        id_prod = random.choice(productos_ids)
         fecha = fake.date_time_between(start_date='-30d', end_date='now')
         # Filtramos eventos que no tienen producto asociado (ej. HOME_PAGE_VISIT)
         eventos_producto = [e for e in EVENTOS_POSIBLES if e not in ["HOME_PAGE_VISIT", "SEARCH"]]
         evento = random.choice(eventos_producto)
-        id_user = random.choice(usuarios_uuids)
+        id_user = random.choice(usuarios_ids)
         
         session.execute(query_producto, (id_prod, evento, fecha, id_user))
 
