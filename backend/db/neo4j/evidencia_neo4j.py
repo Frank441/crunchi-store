@@ -38,7 +38,7 @@ if __name__ == "__main__":
     motor = MotorRecomendacionNeo4j("bolt://localhost:7687", "neo4j", "password123")
     
     print("\n--- MOTOR DE RECOMENDACIONES: FILTRADO COLABORATIVO ---")
-    producto_viendo = "p_7" # Supongamos que es el ID de 'Berserk Vol. 1'
+    producto_viendo = 7 # Supongamos que es el ID de 'Berserk Vol. 1'
     print(f"Buscando recomendaciones para quienes compraron el producto '{producto_viendo}'...\n")
     
     recomendaciones = motor.recomendar_tambien_compraron(producto_viendo)

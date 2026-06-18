@@ -9,7 +9,7 @@ router = APIRouter(tags=["usuarios-analitica"])
 # --- NEO4J ---
 
 @router.get("/usuarios/{usuario_id}/home-sugerencias", response_model=list[SugerenciaHome])
-def obtener_sugerencias_home(usuario_id: str):
+def obtener_sugerencias_home(usuario_id: int):
     query = """
     MATCH (u:Usuario {id: $user_id})-[:COMPRO]->(:Producto)-[:PERTENECE_A]->(g:Genero)<-[:PERTENECE_A]-(p_sugerido:Producto)
     WHERE NOT (u)-[:COMPRO]->(p_sugerido) AND NOT (u)-[:VIO]->(p_sugerido)

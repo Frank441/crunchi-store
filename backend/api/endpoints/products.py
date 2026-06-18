@@ -69,7 +69,6 @@ def eliminar_producto(producto_id: int) -> None:
 
 @router.get("/productos/{producto_id}/recomendados", response_model=list[RecomendacionItem])
 def obtener_recomendados_item_based(producto_id: int):
-    neo4j_id = f"p{producto_id}"
     query = """
     MATCH (p_actual:Producto {id: $prod_id})<-[:COMPRO]-(u:Usuario)-[:COMPRO]->(p_recomendado:Producto)
     WHERE p_actual <> p_recomendado
@@ -78,7 +77,7 @@ def obtener_recomendados_item_based(producto_id: int):
     LIMIT 5;
     """
     with neo4j_db.get_session() as session:
-        resultado = session.run(query, prod_id=neo4j_id)
+        resultado = session.run(query, prod_id=producto_id)
         return [
             RecomendacionItem(
                 id_producto=registro["id"],
