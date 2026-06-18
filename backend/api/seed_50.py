@@ -68,7 +68,7 @@ ANIMES = [
     {"id_anime": 4, "anime": "Attack on Titan (Shingeki no Kyojin)", "generos": ["Shonen", "Acción", "Militar", "Fantasía oscura", "Misterio", "Drama", "Gore", "Post-apocalíptico", "Político"]},
     {"id_anime": 5, "anime": "Kimetsu no Yaiba (Demon Slayer)", "generos": [ "Shonen", "Acción", "Histórico", "Fantasía oscura", "Sobrenatural", "Artes marciales"]},
     {"id_anime": 6, "anime": "Jujutsu Kaisen", "generos": ["Shonen", "Acción", "Sobrenatural", "Fantasía oscura", "Escolar", "Gore"]},
-    {"id_anime": 7, "anime": "Boku no Hero Academia (My Hero Academia)", "generos": ["Shonen", "Acción", "Superhéroes", "Escolar", "Ciencia ficción", "Comedia"]},
+    {"id_anime": 7J, "anime": "Boku no Hero Academia (My Hero Academia)", "generos": ["Shonen", "Acción", "Superhéroes", "Escolar", "Ciencia ficción", "Comedia"]},
     {"id_anime": 8, "anime": "Berserk", "generos": ["Seinen", "Fantasía oscura", "Gore", "Tragedia", "Épico", "Acción", "Aventura", "Militar"]},
     {"id_anime": 9, "anime": "Bleach", "generos": ["Shonen", "Acción", "Sobrenatural", "Fantasía urbana", "Artes marciales"]},
     {"id_anime": 10, "anime": "Death Note", "generos": [ "Shonen", "Thriller psicológico", "Misterio", "Sobrenatural", "Policial", "Drama"]},
