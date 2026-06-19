@@ -102,3 +102,45 @@ class EventoInsertInput(BaseModel):
     id_producto: int             = Field(..., examples=[3])
     evento:      str             = Field(..., examples=["VIEW_PRODUCT"])
     fecha_hora:  datetime | None = Field(None, description="Si se omite, se usa el timestamp actual.")
+
+
+# Modelos Redis — Carrito (HASH cart:<id_usuario>)
+class CarritoItemInput(BaseModel):
+    producto_id: int = Field(..., gt=0, examples=[1])
+    cantidad:    int = Field(1, examples=[1], description="Delta a sumar. Negativo resta; 0 se ignora.")
+
+
+class CarritoCantidadInput(BaseModel):
+    cantidad: int = Field(..., ge=0, examples=[2], description="Cantidad absoluta. 0 elimina el ítem.")
+
+
+class CarritoItemOut(BaseModel):
+    producto: Producto
+    cantidad: int
+    subtotal: float
+
+
+class CarritoOut(BaseModel):
+    items:          list[CarritoItemOut] = Field(default_factory=list)
+    total:          float = 0.0
+    cantidad_items: int   = 0  # suma de cantidades (no de líneas)
+
+
+class CheckoutOut(BaseModel):
+    status:         str
+    total:          float
+    lineas:         int
+    unidades:       int
+    productos_comprados: list[int]
+
+
+# Modelos Redis — Favoritos / Wishlist (SET wishlist:<id_usuario>)
+class WishlistOut(BaseModel):
+    productos:   list[Producto] = Field(default_factory=list)
+    cantidad:    int = 0
+
+
+# Modelos Redis — Trending (SORTED SET trending:productos)
+class TrendingItemOut(BaseModel):
+    producto: Producto
+    vistas:   int
