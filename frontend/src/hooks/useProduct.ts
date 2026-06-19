@@ -6,7 +6,7 @@ import { Product } from '@/types/product';
 
 export const useProducts = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const fetchProducts = useCallback(async () => {
         setLoading(true);
@@ -32,12 +32,12 @@ export const useProducts = () => {
 
 export const useProduct = (id: number | string) => {
     const [product, setProduct] = useState<Product | undefined>(undefined);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const getProduct = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/productos/${id}`, { cache: 'no-store' });
+            const res = await fetch(`${API_URL}/productos/${id}`, { credentials: 'include', cache: 'no-store' });
             if (!res.ok) throw new Error('Failed to fetch product');
             const data = await res.json();
             setProduct(data);
