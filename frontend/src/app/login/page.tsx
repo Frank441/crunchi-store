@@ -1,4 +1,4 @@
-import PageContent from './PageContent';
+import LoginPageContent from './LoginPageContent';
 import { getSessionUser } from '@/lib/auth/getSessionUser';
 import { redirect } from 'next/navigation';
 
@@ -7,6 +7,6 @@ export default async function LoginPage() {
 
     if (user) redirect('/home');
     return (
-        <PageContent />
+        <LoginPageContent />
     )
 }

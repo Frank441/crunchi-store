@@ -5,13 +5,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { Product } from '@/types/product';
 
 export const useProducts = () => {
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
 
     const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/productos`, { cache: 'no-store' });
+            const res = await fetch(`${API_URL}/productos`, { credentials: 'include', cache: 'no-store' });
             if (!res.ok) throw new Error('Failed to fetch products');
             const data = await res.json();
             setProducts(data);
@@ -26,7 +26,7 @@ export const useProducts = () => {
         fetchProducts();
     }, [fetchProducts]);
 
-    return { products, loading, refresh: fetchProducts };
+    return { products, loading };
 }
 
 
