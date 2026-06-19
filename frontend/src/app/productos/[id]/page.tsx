@@ -1,5 +1,3 @@
-import Image from 'next/image';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/auth/getSessionUser';
 import { logEvent } from '@/lib/events/logEvent';
