@@ -1,5 +1,7 @@
-# crunchi-store
-Repositorio de la plataforma Crunchi Store.
+<p align="center">
+  <img src="https://github.com/Frank441/crunchi-store/blob/fd3920bf3cc5058843ecc82afd800f14cd1c48c4/frontend/public/crunchi_store_logo.png" alt="Crunchi Store" width="500"/>
+</p>
+
 
 ## API (FastAPI)
 
@@ -39,7 +41,22 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### 4. Levantar la API
+### 4. Levantar las bases de datos
+
+Utilizando Docker:
+
+```powershell
+docker run -d --name crunchi-redis -p 6379:6379 redis:latest
+docker run -d --name crunchi-mongo -p 27017:27017 mongo:8   
+```
+
+Para registrar los productos base de MongoDB, utilizar desde la carpeta `backend` (con el venv activo):
+
+```powershell
+python -m api.seed_50
+```
+
+### 5. Levantar la API
 
 Desde la carpeta `backend` (con el venv activo):
 
@@ -54,13 +71,28 @@ uvicorn api.main:app --reload
 
 La API queda disponible en `http://127.0.0.1:8000`.
 
-### 5. Probar
+### 6. Levantar el frontend
+
+Desde la carpeta `frontend`
+
+En desarrollo:
+
+```powershell
+pnpm dev
+```
+
+En producción:
+```powershell
+pnpm build && pnpm start
+```
+
+### 7. Probar
 
 - Documentación interactiva (Swagger UI): http://127.0.0.1:8000/docs
 - Health check: http://127.0.0.1:8000/health
 - Listado de productos: http://127.0.0.1:8000/productos
 
-### 6. Detener / salir
+### 8. Detener / salir
 
 - Detener el servidor: `Ctrl + C`
 - Salir del entorno virtual: `deactivate`
