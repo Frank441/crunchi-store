@@ -55,6 +55,11 @@ Para registrar los productos base de MongoDB, utilizar desde la carpeta `backend
 python -m api.seed_50
 ```
 
+Y para los dataset de Cassandra y Neo4j + usuarios falsos en MongoDB
+```powershell
+python -m api.seed_eventos
+```
+
 ### 5. Levantar la API
 
 Desde la carpeta `backend` (con el venv activo):
@@ -90,6 +95,7 @@ pnpm build && pnpm start
 - Documentación interactiva (Swagger UI): http://127.0.0.1:8000/docs
 - Health check: http://127.0.0.1:8000/health
 - Listado de productos: http://127.0.0.1:8000/productos
+- Page de Cassandra: http://localhost:3000/analitica
 
 ### 8. Detener / salir
 
