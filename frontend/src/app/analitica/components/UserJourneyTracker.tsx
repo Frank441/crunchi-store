@@ -9,18 +9,18 @@ interface UserJourneyTrackerProps {
 }
 
 export default function UserJourneyTracker({ productos }: UserJourneyTrackerProps) {
-  const [userId, setUserId] = useState<string>('');
+  const [userId, setUserId] = useState<string>(''); 
   const [journey, setJourney] = useState<EventoPorUsuario[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!userId.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await getUserJourney(userId);
+      const data = await getUserJourney(userId); 
       if (data.length === 0) {
         setError('No se encontraron eventos o el usuario no existe.');
       }
@@ -33,7 +33,6 @@ export default function UserJourneyTracker({ productos }: UserJourneyTrackerProp
     }
   };
 
-  // Función utilitaria para encontrar el nombre legible del producto
   const getNombreProducto = (idProducto: number) => {
     const prod = productos.find((p) => p.id === idProducto);
     return prod ? prod.nombre : `Producto #${idProducto}`;
@@ -46,18 +45,17 @@ export default function UserJourneyTracker({ productos }: UserJourneyTrackerProp
           <span>🎯</span> Rastreador de Usuarios (User Journey)
         </h2>
         <p className="text-xs font-inter text-white/40 mt-1">
-          Auditoría cronológica optimizada mediante clave de partición en Cassandra.
+          Auditoría cronológica.
         </p>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-3 mb-6">
         <input
-          type="number"
-          placeholder="ID de Usuario (Ej: 15)"
+          type="text" 
+          placeholder="ID de Usuario (Ej: USR-999 o 15)"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           className="bg-black/20 border border-white/10 font-inter text-sm text-white px-4 py-2 rounded-xl focus:outline-none focus:border-primary/60 w-full sm:w-64"
-          min="1"
         />
         <button
           type="submit"
@@ -76,7 +74,7 @@ export default function UserJourneyTracker({ productos }: UserJourneyTrackerProp
               <th className="p-4 font-semibold">Evento</th>
               <th className="p-4 font-semibold">Producto</th>
               <th className="p-4 font-semibold">Fecha y Hora</th>
-              <th className="p-4 font-semibold font-mono text-white/30">TimeUUID</th>
+              <th className="p-4 font-semibold font-mono text-white/30">TimeUUID (DESC)</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5 text-white/80">
@@ -84,9 +82,14 @@ export default function UserJourneyTracker({ productos }: UserJourneyTrackerProp
               journey.map((item) => (
                 <tr key={item.id_evento} className="hover:bg-white/5 transition-colors duration-200">
                   <td className="p-4">
-                    <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
-                      item.evento.includes('PURCHASE') ? 'bg-green-500/20 text-green-400' :
-                      item.evento.includes('CART') ? 'bg-amber-500/20 text-amber-400' : 'bg-primary/25 text-primary'
+                    <span className={`px-2 py-0.5 rounded-md text-xs font-bold whitespace-nowrap ${
+                      item.evento === 'PURCHASE_COMPLETE' ? 'bg-green-500/20 text-green-400' :
+                      item.evento === 'CHECKOUT_START' ? 'bg-emerald-500/20 text-emerald-400' :
+                      item.evento.includes('CART') ? 'bg-amber-500/20 text-amber-400' : 
+                      item.evento === 'ADD_TO_WISHLIST' ? 'bg-pink-500/20 text-pink-400' :
+                      item.evento === 'LEAVE_REVIEW' ? 'bg-purple-500/20 text-purple-400' :
+                      item.evento === 'SEARCH' ? 'bg-sky-500/20 text-sky-400' :
+                      'bg-primary/25 text-primary'
                     }`}>
                       {item.evento}
                     </span>

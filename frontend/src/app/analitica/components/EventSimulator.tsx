@@ -8,24 +8,28 @@ interface EventSimulatorProps {
 }
 
 const EVENTOS_DISPONIBLES = [
-  'VIEW_PRODUCT', 
-  'ADD_TO_CART', 
-  'REMOVE_FROM_CART', 
-  'CHECKOUT_START', 
-  'PURCHASE_COMPLETE'
+  "HOME_PAGE_VISIT", 
+  "SEARCH", 
+  "VIEW_PRODUCT", 
+  "ADD_TO_CART",
+  "REMOVE_FROM_CART", 
+  "CHECKOUT_START", 
+  "PURCHASE_COMPLETE",
+  "LEAVE_REVIEW", 
+  "ADD_TO_WISHLIST"
 ];
 
 export default function EventSimulator({ productos }: EventSimulatorProps) {
-  const [isOpen, setIsOpen] = useState(false); // Estado para ocultar/mostrar
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string>(productos[0]?.id?.toString() ?? '');
-  const [selectedEvento, setSelectedEvento] = useState<string>('VIEW_PRODUCT');
-  const [customUserId, setCustomUserId] = useState<string>('999'); // ID por defecto local
+  const [selectedEvento, setSelectedEvento] = useState<string>('HOME_PAGE_VISIT');
+  const [customUserId, setCustomUserId] = useState<string>('USR-999'); 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProduct || !customUserId) return;
+    if (!selectedProduct || !customUserId.trim()) return;
 
     setLoading(true);
     setStatus(null);
@@ -34,7 +38,7 @@ export default function EventSimulator({ productos }: EventSimulatorProps) {
       await logEvent(customUserId, parseInt(selectedProduct), selectedEvento);
       setStatus({
         type: 'success',
-        message: `¡Evento ${selectedEvento} inyectado con éxito para el Usuario ${customUserId}!`
+        message: `¡Evento ${selectedEvento} inyectado con éxito para el Usuario "${customUserId}"!`
       });
       setTimeout(() => setStatus(null), 4000);
     } catch (err) {
@@ -55,7 +59,7 @@ export default function EventSimulator({ productos }: EventSimulatorProps) {
             <span>🚀</span> Herramientas de Desarrollo
           </h2>
           <p className="text-xs font-inter text-white/40 mt-1">
-            Simulador opcional para generar comportamientos calientes de compra en Cassandra.
+            Simulador para generar comportamientos calientes.
           </p>
         </div>
         <button
@@ -67,15 +71,16 @@ export default function EventSimulator({ productos }: EventSimulatorProps) {
       </div>
 
       {isOpen && (
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end font-inter mt-6 pt-6 border-t border-white/5 dynamic-fade">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end font-inter mt-6 pt-6 border-t border-white/5">
           <div>
-            <label className="block text-xs font-bold text-white/50 uppercase tracking-wide mb-2">ID Usuario</label>
+            <label className="block text-xs font-bold text-white/50 uppercase tracking-wide mb-2">ID Usuario (Texto)</label>
             <input
-              type="number"
+              type="text" 
               value={customUserId}
               onChange={(e) => setCustomUserId(e.target.value)}
               className="bg-black/20 border border-white/10 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-primary/60 w-full"
               required
+              placeholder="Ej: USR_A15"
             />
           </div>
 
@@ -121,9 +126,7 @@ export default function EventSimulator({ productos }: EventSimulatorProps) {
 
       {status && isOpen && (
         <div className={`mt-4 p-3 rounded-xl text-xs font-inter border ${
-          status.type === 'success' 
-            ? 'bg-green-500/10 border-green-500/20 text-green-400' 
-            : 'bg-red-500/10 border-red-500/20 text-red-400'
+          status.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
         }`}>
           {status.message}
         </div>

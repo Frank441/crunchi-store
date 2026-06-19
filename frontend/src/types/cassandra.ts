@@ -1,5 +1,5 @@
 export interface EventoPorUsuario {
-  id_usuario: number;
+  id_usuario: string;
   fecha_hora: string;
   id_evento: string;
   evento: string;
@@ -11,5 +11,5 @@ export interface EventoPorProducto {
   evento: string;
   id_evento: string;
   fecha_hora: string;
-  id_usuario: number;
+  id_usuario: string; 
 }
