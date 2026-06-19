@@ -45,7 +45,8 @@ Utilizando Docker:
 
 ```powershell
 docker run -d --name crunchi-redis -p 6379:6379 redis:latest
-docker run -d --name crunchi-mongo -p 27017:27017 mongo:8   
+docker run -d --name crunchi-mongo -p 27017:27017 mongo:8  
+docker run -d --name crunchi-cassandra -p 9042:9042 cassandra:latest
 ```
 
 Para registrar los productos base de MongoDB, utilizar desde la carpeta `backend` (con el venv activo):
