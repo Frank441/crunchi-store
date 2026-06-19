@@ -52,10 +52,11 @@ const CartView = ({ inicial, idUsuario }: { inicial: Carrito; idUsuario: string 
             setCompra(res);
             setCarrito({ items: [], total: 0, cantidad_items: 0 });
             
-            // --- TRACKING POLÍGLOTA CON CANTIDADES ---
             itemsAComprar.forEach(({ producto, cantidad }) => {
+    
+            // Hacés un bucle que corra tantas veces como unidades se hayan comprado
+            for (let i = 0; i < cantidad; i++) {
                 
-                // 1. Log a Cassandra: agregamos "cantidad" al JSON
                 fetch(`${API_URL}/cassandra/evento`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -63,24 +64,25 @@ const CartView = ({ inicial, idUsuario }: { inicial: Carrito; idUsuario: string 
                         id_usuario: idUsuario,
                         id_producto: producto.id,
                         evento: "PURCHASE_COMPLETE",
-                        cantidad: cantidad, // <-- Enviamos cuántos compró
-                        fecha_hora: new Date().toISOString()
+                        // Agregamos un leve delay ficticio en los milisegundos para evitar colisión en Cassandra si van en paralelo
+                        fecha_hora: new Date(Date.now() + i).toISOString() 
                     }),
-                }).catch(err => console.error("Error Cassandra (PURCHASE_COMPLETE):", err));
+                }).catch(err => console.error("Error Cassandra:", err));
+            }
 
-                // 2. Log a Neo4j: sumamos la propiedad en la arista del grafo
-                fetch(`${API_URL}/neo4j/accion-usuario`, { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id_usuario: idUsuario,
-                        id_producto: producto.id,
-                        accion: 'COMPRO',
-                        cantidad: cantidad // <-- Mandamos las unidades a Neo4j
-                    })
-                }).catch(err => console.error("Error Neo4j (COMPRO):", err));
-            });
-
+            // A Neo4j le mandás una sola petición avisando la cantidad total para actualizar la arista
+            fetch(`${API_URL}/neo4j/accion-usuario`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_usuario: idUsuario,
+                    id_producto: producto.id,
+                    accion: 'COMPRO',
+                    cantidad: cantidad 
+                })
+            }).catch(err => console.error("Error Neo4j:", err));
+        });
+        
         } catch (e) {
             setError(e instanceof Error ? e.message : 'No se pudo finalizar la compra');
         } finally {
