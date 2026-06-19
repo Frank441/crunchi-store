@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { getProduct } from '@/lib/products/getProducts';
+import { getProduct, getProducts } from '@/lib/products/getProducts';
 import { getSessionUser } from '@/lib/auth/getSessionUser';
 import { getWishlistIds } from '@/lib/wishlist/getWishlist';
 import { logEvent } from '@/lib/events/logEvent';
@@ -9,6 +9,8 @@ import { BuyButton } from './components';
 import FavoriteButton from '@/components/FavoriteButton';
 import { EVENT_TYPES } from '@/constants/events';
 import { API_URL } from '@/constants';
+import { getItemBasedRecommendations, reportActionToNeo4j } from '@/lib/recommendations/getRecommendations';
+import CategoryCarousel from './components/CategoryCarousel';
 
 const formatearPrecio = (precio: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -25,7 +27,10 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
     const producto = await getProduct(id);
     if (!producto) notFound();
 
-    await logEvent(user.id, producto.id, EVENT_TYPES.VIEW_PRODUCT);
+    await Promise.all([
+        logEvent(user.id, producto.id, EVENT_TYPES.VIEW_PRODUCT),
+        reportActionToNeo4j(user.id, producto.id, 'VIO').catch(() => {})
+    ]);
 
     // Redis: cada visita suma 1 al ranking de trending (ZINCRBY). Best-effort.
     await fetch(`${API_URL}/trending/vista/${producto.id}`, { method: 'POST', cache: 'no-store' }).catch(() => {});
@@ -33,6 +38,9 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
     const favIds = await getWishlistIds();
     const esFavorito = favIds.includes(producto.id);
     const imagen = producto.imagenes[0] ?? '/logo.png';
+    const todosLosProductos = await getProducts();
+    // Obtenemos recomendaciones Item-Based perfectamente estructuradas
+    const recomendadosNeo4j = await getItemBasedRecommendations(producto.id, todosLosProductos);
 
     return (
         <div className="min-h-screen bg-background px-8 pb-16 pt-28">
@@ -79,6 +87,16 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
                         </div>
                     </div>
                 </div>
+                {/* Sección del Grafo */}
+                {recomendadosNeo4j.length > 0 && (
+                    <div className="mt-12 pt-12 border-t border-white/5">
+                        <CategoryCarousel 
+                            titulo="🤝 Quienes compraron este artículo también compraron..." 
+                            productos={recomendadosNeo4j} 
+                            favoritos={favIds} 
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

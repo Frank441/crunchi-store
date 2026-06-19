@@ -14,6 +14,7 @@ FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 async def lifespan(app: "FastAPI"):
     from db.mongo import mongo as mongo_db
     from db.cassandra.cassandra import inicializar_cassandra
+    from db.neo4j.neo4j import inicializar_neo4j, get_session
 
     try:
         mongo_db.init_indexes()
@@ -26,6 +27,15 @@ async def lifespan(app: "FastAPI"):
         print("[OK] Cassandra inicializado correctamente.")
     except Exception as e:
         print(f"[WARN] No se pudo inicializar Cassandra: {e}")
+    
+    try:
+        inicializar_neo4j()
+        # Hacemos una consulta rápida de prueba usando tu función get_session()
+        with get_session() as session:
+            session.run("RETURN 1")
+        print("[OK] Neo4j conectado e inicializado correctamente.")
+    except Exception as e:
+        print(f"[WARN] No se pudo conectar a Neo4j: {e}")
 
     yield
 
