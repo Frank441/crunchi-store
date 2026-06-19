@@ -15,7 +15,7 @@ type HomePageContentProps = {
 export default function PageContent({ alias }: HomePageContentProps) {
     const { products } = useProducts();
     // const [porCategoria, setPorCategoria] = useState();
-    const [categorias, setCategorias] = useState()
+    const [categorias, setCategorias] = useState<any>()
 
     // useEffect(() => {
     //     if (products?.length > 0) groupByCategory(products);
@@ -55,7 +55,7 @@ export default function PageContent({ alias }: HomePageContentProps) {
                 {categorias?.length === 0 ? (
                     <p className="text-lg text-gray-400 font-inter">No hay productos para mostrar.</p>
                 ) : (
-                    categorias?.map((categoria) => (
+                    categorias?.map((categoria: any) => (
                         <CategoryCarousel
                             key={categoria}
                             titulo={categoria}

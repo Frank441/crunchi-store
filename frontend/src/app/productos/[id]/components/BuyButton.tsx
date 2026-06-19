@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { Product } from '@/types/product';
 
 const BuyButton = ({ producto }: { producto: Product }) => {
-    const tieneTalles = !!producto.talles && producto.talles.length > 0;
+    const tieneTalles = !!producto?.talles && producto?.talles?.length > 0;
     const [talle, setTalle] = useState<string | null>(null);
     const [agregado, setAgregado] = useState(false);
 
-    const sinStock = producto.stock <= 0;
+    const sinStock = producto?.stock <= 0;
     const faltaTalle = tieneTalles && !talle;
     const deshabilitado = sinStock || faltaTalle;
 
