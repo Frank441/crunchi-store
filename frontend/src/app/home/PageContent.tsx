@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useProducts } from '@/hooks';
+import { useProduct } from '@/hooks';
 import { groupByCategory } from '@/lib/products/getProducts';
 import { CategoryCarousel } from './components';
 
