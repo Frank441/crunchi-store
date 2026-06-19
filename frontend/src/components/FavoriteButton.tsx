@@ -3,16 +3,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleFavorite } from '@/lib/wishlist/wishlistClient';
+import { API_URL } from '@/constants';
 
 interface FavoriteButtonProps {
     productoId: number;
     esFavorito: boolean;
+    idUsuario?: string;
     /** Si true, refresca la página (server) tras el cambio. Útil en /favoritos. */
     refreshOnChange?: boolean;
     className?: string;
 }
 
-const FavoriteButton = ({ productoId, esFavorito, refreshOnChange = false, className = '' }: FavoriteButtonProps) => {
+const FavoriteButton = ({ productoId, esFavorito, idUsuario, refreshOnChange = false, className = '' }: FavoriteButtonProps) => {
     const [fav, setFav] = useState(esFavorito);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -30,6 +32,19 @@ const FavoriteButton = ({ productoId, esFavorito, refreshOnChange = false, class
         try {
             const nuevo = await toggleFavorite(productoId, previo);
             setFav(nuevo);
+            if (nuevo && idUsuario) {
+                // Fire-and-forget: lo disparamos en segundo plano sin trabar el flujo del usuario
+                fetch(`${API_URL}/cassandra/evento`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        id_usuario: idUsuario,
+                        id_producto: productoId,
+                        evento: "ADD_TO_WISHLIST",
+                        fecha_hora: new Date().toISOString()
+                    }),
+                }).catch(err => console.error("Error al registrar evento ADD_TO_WISHLIST:", err));
+            }
             if (refreshOnChange) router.refresh();
         } catch {
             setFav(previo); // revertimos si falló

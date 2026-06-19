@@ -13,7 +13,7 @@ export default async function CarritoPage() {
         <div className="min-h-screen bg-background px-8 pb-16 pt-28">
             <div className="max-w-5xl mx-auto">
                 <h1 className="text-4xl font-extrabold font-ubuntu text-white mb-10">Tu carrito</h1>
-                <CartView inicial={carrito} />
+                <CartView inicial={carrito} idUsuario={user.id}/>
             </div>
         </div>
     );

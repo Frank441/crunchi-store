@@ -82,6 +82,7 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
                             <FavoriteButton
                                 productoId={producto.id}
                                 esFavorito={esFavorito}
+                                idUsuario={user.id}
                                 className="w-14 h-14 shrink-0 border border-white/20 bg-white/5 hover:bg-white/10"
                             />
                         </div>
