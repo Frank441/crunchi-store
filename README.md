@@ -5,8 +5,6 @@
 
 ## API (FastAPI)
 
-API sencilla de demostración del marketplace. Expone un CRUD de productos en memoria, sin dependencias de bases de datos, por lo que se levanta con un solo comando.
-
 ### 1. Requisitos
 
 - **Python 3.10+**
