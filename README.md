@@ -47,6 +47,7 @@ Utilizando Docker:
 docker run -d --name crunchi-redis -p 6379:6379 redis:latest
 docker run -d --name crunchi-mongo -p 27017:27017 mongo:8  
 docker run -d --name crunchi-cassandra -p 9042:9042 cassandra:latest
+docker run -d --name crunchi-neo4j -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j:latest
 ```
 
 Para registrar los productos base de MongoDB, utilizar desde la carpeta `backend` (con el venv activo):
@@ -76,18 +77,19 @@ uvicorn api.main:app --reload
 La API queda disponible en `http://127.0.0.1:8000`.
 
 ### 6. Levantar el frontend
+Abrir una nueva terminal
 
 Desde la carpeta `frontend`
 
 En desarrollo:
 
 ```powershell
-pnpm dev
+npm run dev
 ```
 
 En producción:
 ```powershell
-pnpm build && pnpm start
+npm build && npm start
 ```
 
 ### 7. Probar
