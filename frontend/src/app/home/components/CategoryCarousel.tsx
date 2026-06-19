@@ -6,10 +6,13 @@ import ProductCard from './ProductCard';
 interface CategoryCarouselProps {
     titulo: string;
     productos: Product[];
+    /** Ids de productos marcados como favoritos por el usuario. */
+    favoritos?: number[];
 }
 
-const CategoryCarousel = ({ titulo, productos }: CategoryCarouselProps) => {
+const CategoryCarousel = ({ titulo, productos, favoritos = [] }: CategoryCarouselProps) => {
     const trackRef = useRef<HTMLDivElement>(null);
+    const favSet = new Set(favoritos);
 
     const scroll = (direccion: 'prev' | 'next') => {
         const track = trackRef.current;
@@ -47,7 +50,7 @@ const CategoryCarousel = ({ titulo, productos }: CategoryCarouselProps) => {
                 className="flex gap-4 overflow-x-auto scroll-smooth pt-3 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {productos.map((producto) => (
-                    <ProductCard key={producto.id} producto={producto} />
+                    <ProductCard key={producto.id} producto={producto} esFavorito={favSet.has(producto.id)} />
                 ))}
             </div>
         </section>

@@ -3,9 +3,12 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getProduct } from '@/lib/products/getProducts';
 import { getSessionUser } from '@/lib/auth/getSessionUser';
+import { getWishlistIds } from '@/lib/wishlist/getWishlist';
 import { logEvent } from '@/lib/events/logEvent';
 import { BuyButton } from './components';
+import FavoriteButton from '@/components/FavoriteButton';
 import { EVENT_TYPES } from '@/constants/events';
+import { API_URL } from '@/constants';
 
 const formatearPrecio = (precio: number) =>
     new Intl.NumberFormat('es-AR', {
@@ -23,6 +26,12 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
     if (!producto) notFound();
 
     await logEvent(user.id, producto.id, EVENT_TYPES.VIEW_PRODUCT);
+
+    // Redis: cada visita suma 1 al ranking de trending (ZINCRBY). Best-effort.
+    await fetch(`${API_URL}/trending/vista/${producto.id}`, { method: 'POST', cache: 'no-store' }).catch(() => {});
+
+    const favIds = await getWishlistIds();
+    const esFavorito = favIds.includes(producto.id);
     const imagen = producto.imagenes[0] ?? '/logo.png';
 
     return (
@@ -60,7 +69,14 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
                             {producto.stock > 0 ? `${producto.stock} disponibles` : 'Sin stock'}
                         </p>
 
-                        <BuyButton producto={producto} />
+                        <div className="flex items-center gap-3">
+                            <BuyButton producto={producto} />
+                            <FavoriteButton
+                                productoId={producto.id}
+                                esFavorito={esFavorito}
+                                className="w-14 h-14 shrink-0 border border-white/20 bg-white/5 hover:bg-white/10"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

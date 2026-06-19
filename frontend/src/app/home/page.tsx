@@ -1,5 +1,7 @@
 import { getSessionUser } from '@/lib/auth/getSessionUser';
 import { getProducts, groupByCategory } from '@/lib/products/getProducts';
+import { getWishlistIds } from '@/lib/wishlist/getWishlist';
+import { getTrending } from '@/lib/trending/getTrending';
 import { redirect } from 'next/navigation';
 import { CategoryCarousel } from './components';
 
@@ -11,7 +13,11 @@ export default async function HomePage() {
 
   if (!user) redirect('/login');
 
-  const productos = await getProducts();
+  const [productos, favoritos, trending] = await Promise.all([
+    getProducts(),
+    getWishlistIds(),
+    getTrending(12),
+  ]);
   const porCategoria = groupByCategory(productos);
 
   const categorias = Object.keys(porCategoria).sort((a, b) => {
@@ -20,10 +26,16 @@ export default async function HomePage() {
     return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib);
   });
 
+  const productosTrending = trending.map((t) => t.producto);
+
   return (
     <div className="min-h-screen bg-background px-8 pb-8 pt-28">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-extrabold font-ubuntu mb-10">Hola, {user.alias}</h1>
+
+        {productosTrending.length > 0 && (
+          <CategoryCarousel titulo="🔥 Tendencias" productos={productosTrending} favoritos={favoritos} />
+        )}
 
         {categorias.length === 0 ? (
           <p className="text-lg text-gray-400 font-inter">No hay productos para mostrar.</p>
@@ -33,6 +45,7 @@ export default async function HomePage() {
               key={categoria}
               titulo={categoria}
               productos={porCategoria[categoria]}
+              favoritos={favoritos}
             />
           ))
         )}

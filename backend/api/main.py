@@ -58,9 +58,12 @@ def health() -> dict[str, str]:
 
 
 # --- Registro de rutas ---
-from api.endpoints import auth, events, products, users
+from api.endpoints import auth, cart, events, products, trending, users, wishlist
 
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(users.router)
 app.include_router(events.router)
+app.include_router(cart.router)
+app.include_router(wishlist.router)
+app.include_router(trending.router)
