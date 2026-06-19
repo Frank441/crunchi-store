@@ -1,0 +1,73 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useProduct } from '@/hooks';
+import { BuyButton } from './components';
+import Link from 'next/link';
+import Image from 'next/image';
+
+
+const PageContent = ({ id }: { id: string }) => {
+
+    const { product: producto, loading } = useProduct(id);
+
+    const [imagen, setImage] = useState('/logo.png');
+    useEffect(() => {
+        if (!loading && producto && producto.imagenes[0]) setImage(producto.imagenes[0]);
+    }, [producto])
+    return (
+        <div className="max-w-5xl mx-auto">
+            <Link
+                href="/home"
+                className="inline-flex items-center gap-2 text-white/60 hover:text-white font-inter text-sm mb-8 transition-colors"
+            >
+                ‹ Volver al catálogo
+            </Link>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {
+                    !loading &&
+                    <>
+                        <div className="relative w-full h-[30vh] md:h-auto rounded-3xl overflow-hidden bg-white/5 border border-white/10">
+                            <Image
+                                src={imagen}
+                                alt={producto?.nombre || 'product_image'}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="object-cover"
+                                priority
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <span className="text-primary font-helvetica text-xs uppercase tracking-widest mb-2">{producto?.categoria}</span>
+                            <h1 className="text-3xl md:text-4xl font-extrabold font-ubuntu text-white mb-1">{producto?.nombre}</h1>
+                            <p className="text-white/40 font-inter text-sm uppercase tracking-wide mb-6">{producto?.marca}</p>
+
+                            <p className="text-4xl font-bold font-ubuntu text-white mb-6">{formatearPrecio(producto?.precio!)}</p>
+
+                            <p className="text-white/70 font-inter leading-relaxed mb-6">{producto?.descripcion}</p>
+
+                            <p className={`font-inter text-sm mb-8 ${producto?.stock! > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {producto?.stock! > 0 ? `${producto?.stock} disponibles` : 'Sin stock'}
+                            </p>
+
+                            <BuyButton producto={producto!} />
+                        </div>
+                    </>
+                }
+            </div>
+        </div>
+    )
+}
+
+
+
+const formatearPrecio = (precio: number) =>
+    new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        maximumFractionDigits: 0,
+    }).format(precio);
+
+export default PageContent;
